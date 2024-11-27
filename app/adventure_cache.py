@@ -1,6 +1,6 @@
 from cachetools import TTLCache
 from cachetools.func import ttl_cache
-from time import sleep
+from time import sleep, time
 from otel import CustomLogFW, CustomMetrics, CustomTracer
 import logging
 
@@ -21,6 +21,19 @@ logging.getLogger().addHandler(handler)
 logging.getLogger().setLevel(logging.INFO)
 
 cache = TTLCache(maxsize=MAX_SIZE, ttl=TIMEOUT_SECONDS)
+
+def status():
+    resp = []
+
+    for key in sorted(cache.keys()):
+        adventure = cache.get(key)
+        resp.append({ 
+            "user": key, 
+            "id": adventure.id,
+            "current_location": adventure.current_location,
+            "game_active": adventure.game_active,
+        })
+    return resp
 
 # Define the cache 
 def get(key: str) -> str:

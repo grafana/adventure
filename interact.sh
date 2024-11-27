@@ -6,7 +6,7 @@
 
 ENDPOINT=http://localhost:3000/api/adventure
 #ENDPOINT=https://adventure-93209135917.us-east4.run.app/api/adventure
-PLAYER=moxious
+PLAYER=Moxious
 
 JSON=$(cat <<EOF
 {"user":"$PLAYER", "command":"$1"}

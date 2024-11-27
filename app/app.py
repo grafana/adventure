@@ -5,6 +5,7 @@ from flask import Flask, render_template, request
 import os
 import json
 import logging
+import time
 
 from . import adventure_game
 from . import adventure_cache
@@ -39,6 +40,9 @@ def adventure():
 
     return { "response": response }, 200
 
+@app.route('/api/cache', methods=['GET'])
+def cache_status():
+    return adventure_cache.status(), 200
 
 @app.route("/api/echo", methods=['POST'])
 def echo():

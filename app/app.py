@@ -38,6 +38,9 @@ def adventure():
     print("Adventure " + adventure.id + " " + body.get('command', ''))
     response = adventure.command(body.get('command', ''))
 
+    # Update cache; adventure has changed
+    adventure_cache.set(user, adventure)
+    
     return { "response": response }, 200
 
 @app.route('/api/cache', methods=['GET'])

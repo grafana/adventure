@@ -6,6 +6,7 @@ import time
 import logging
 import sys
 import uuid
+import pickle
 
 # Temporary nasty hack: disable colors until I can figure out how
 # to get terminal colors / escape codes to work in Grafana
@@ -17,6 +18,15 @@ class Colors:
     BLUE = '' # "\033[34m"
     MAGENTA = '' # "\033[35m"
     CYAN = '' # "\033[36m"
+
+def serialize_game(game):
+    state = game.get_state()
+    return pickle.dumps(state)
+
+def deserialize_game(serialized_game):
+    game = AdventureGame(serialized_game["adventurer_name"])
+    game.set_state(serialized_game)
+    return game 
 
 class AdventureGame:
     def __init__(self, adventurer_name):
@@ -207,6 +217,10 @@ class AdventureGame:
         self.cool_forge()
         return "You help the town rebuild the blacksmith. The blacksmith is grateful."
     
+    # TODO: remove thread for multiplayer microservices mode
+    # Instead add a start time, and do math based on number of seconds elapsed since start
+    # to determine forge heat; do math to update state
+    # each time a command is given.
     def start_heat_forge_thread(self):
         def increase_heat_loop():
             while self.game_active:
@@ -482,6 +496,21 @@ class AdventureGame:
         else:
             print("Thank you for playing!")
             logging.info(f"{self.adventurer_name}'s adventure has ended.")
+
+    def get_state(self):
+        keys = [
+            'adventurer_name',
+            'game_active', 'current_location', 'is_heating_forge', 'blacksmith_burned_down', 'heat', 
+            'sword_requested', 'failed_sword_attempts', 'has_sword', 'has_evil_sword', 'has_holy_sword', 'quest_accepted', 'priest_alive', 'has_box'
+        ]
+
+        d = {}
+        for key in keys:
+            d[key] = self.__dict__[key]
+        return d
+
+    def set_state(self, state):
+        self.__dict__.update(state)
 
     def restart_adventure(self):
         # Allow the user to restart the adventure with the same name or a new name

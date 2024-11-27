@@ -3,6 +3,8 @@ from cachetools.func import ttl_cache
 from time import sleep, time
 from otel import CustomLogFW, CustomMetrics, CustomTracer
 import logging
+import pickle
+from . import adventure_game
 
 # This is a cheapo caching implementation that will keep track of all the adventures we've got going on
 # but will let them age out and disappear after a while.
@@ -39,12 +41,17 @@ def status():
 def get(key: str) -> str:
     # Simulate some data fetching or processing
     logging.info(f"Fetching cache data for key: {key}")
-    return cache.get(key, None)
+    pickle_string = cache.get(key, None)
+
+    if pickle_string is None:
+        return None
+
+    return adventure_game.deserialize_game(pickle.loads(pickle_string))
 
 # Access the underlying cache from the decorated function
-def set(key: str, value: str):
+def set(key: str, game):
     """Manually set an item in the cache."""
-    cache[key] = value
+    cache[key] = adventure_game.serialize_game(game)
     logging.info(f"Manually set {key} in the cache.")
-    print("Set cache item " + key + " to " +str(value))
-    return value
+    print("Set cache item " + key + " to " +str(game))
+    return game

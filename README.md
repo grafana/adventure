@@ -105,13 +105,18 @@ Logging configured with OpenTelemetry.
 Logging configured with OpenTelemetry.
 ```
 
-To interact with it, simply POST a JSON body with a "user" and "command" field, like so:
+To interact with it, simply use the `interact.sh` script so you don't have to keep JSON posting.
 
 ```
-$ curl -XPOST http://localhost:3000/api/adventure -H 'Content-Type: application/json' -d '{"user":"David", "command": "look around"}'
+$ ./interact.sh 'look around'
 You are at the beginning of your adventure. There's a path leading north towards a town, and another path leading east towards a forest.
 Available actions: go to town, go to forest, cheat, look around
+$ ./interact.sh 'go to town'
+You are in a bustling town. People are going about their business. You see a blacksmith, a mysterious man wandering the streets, a quest giver, and a chapel.
+Available actions: blacksmith, rebuild blacksmith, mysterious man, wizard, quest giver, chapel, look around
 ```
+
+(This works by using curl to POST to `http://localhost:3000/api/adventure`)
 
 <!-- INTERACTIVE page step1.md END -->
 

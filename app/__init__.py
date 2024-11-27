@@ -6,6 +6,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from . import app
+from . import adventure_game
+
+AdventureGame = adventure_game.AdventureGame
 
 def create_app(config_class=None):
     instance = app.get_app()

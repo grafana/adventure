@@ -456,49 +456,13 @@ class AdventureGame:
 
             # Check if the game has ended, and if so, break out of the loop
             if not self.game_active:
-                journey_span.add_event("Adventure ended")
+                # TODO: figure out how to get an outer journey span on entire adventure across sessions
+                # journey_span.add_event("Adventure ended")
                 action_span.add_event(f"{self.adventurer_name} completed the adventure.")
                 action_span.set_status(Status(StatusCode.OK))
                 return "Adventure ended"
             
             return response_buf
-
-    def play(self, command):
-        # Create a root span for the entire game playthrough
-        
-        print("Welcome to your text adventure! Type 'quit' to exit.")
-        logging.info("Welcome to your text adventure! Type 'quit' to exit.")
-        print(f"{Colors.GREEN}{self.here()}{Colors.RESET}")
-        with self.tracer.start_as_current_span(self.adventurer_name, attributes={"adventurer": self.adventurer_name}) as journey_span:
-            while self.game_active:
-                logging.info(f"Action by {self.adventurer_name}: " + command)
-
-                # Create a span for each action taken by the player, with location attribute added
-                with self.tracer.start_as_current_span(
-                    f"action: {command}",
-                    attributes={
-                        "adventurer": self.adventurer_name,
-                        "location": self.current_location  # Adding location attribute to provide more context
-                    }
-                ) as action_span:
-                    response = self.process_command(command)
-                    print(f"{response}")
-                    logging.info(response)
-
-                    # Check if the game has ended, and if so, break out of the loop
-                    if not self.game_active:
-                        journey_span.add_event("Adventure ended")
-                        action_span.add_event(f"{self.adventurer_name} completed the adventure.")
-                        action_span.set_status(Status(StatusCode.OK))
-                        break
-            
-            # Ask if the user wants to restart after the adventure has ended
-        restart_command = input("Would you like to restart the adventure? (yes/no): ").strip().lower()
-        if restart_command == "yes":
-            self.restart_adventure()
-        else:
-            print("Thank you for playing!")
-            logging.info(f"{self.adventurer_name}'s adventure has ended.")
 
     def get_state(self):
         keys = [
@@ -536,8 +500,5 @@ class AdventureGame:
         self.heat = 0  # Reset the forge heat
         self.has_box = False
 
-    # Restart the heat forge thread
+        # Restart the heat forge thread
         self.start_heat_forge_thread()
-
-        # Start the game again
-        self.play()

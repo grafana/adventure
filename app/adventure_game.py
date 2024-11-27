@@ -5,6 +5,7 @@ import threading
 import time
 import logging
 import sys
+import time
 import uuid
 import pickle
 
@@ -37,6 +38,8 @@ class AdventureGame:
         handler = logFW.setup_logging()
         logging.getLogger().addHandler(handler)
         logging.getLogger().setLevel(logging.INFO)
+
+        self.start_time = int(time.time())
 
         metrics = CustomMetrics(service_name='adventure')
         meter = metrics.get_meter()
@@ -499,7 +502,7 @@ class AdventureGame:
 
     def get_state(self):
         keys = [
-            'adventurer_name',
+            'adventurer_name', 'start_time', 
             'game_active', 'current_location', 'is_heating_forge', 'blacksmith_burned_down', 'heat', 
             'sword_requested', 'failed_sword_attempts', 'has_sword', 'has_evil_sword', 'has_holy_sword', 'quest_accepted', 'priest_alive', 'has_box'
         ]

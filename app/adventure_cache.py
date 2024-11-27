@@ -4,6 +4,8 @@ from time import sleep, time
 from otel import CustomLogFW, CustomMetrics, CustomTracer
 import logging
 import pickle
+import redis
+import os
 from . import adventure_game
 
 # This is a cheapo caching implementation that will keep track of all the adventures we've got going on
@@ -22,36 +24,73 @@ handler = logFW.setup_logging()
 logging.getLogger().addHandler(handler)
 logging.getLogger().setLevel(logging.INFO)
 
-cache = TTLCache(maxsize=MAX_SIZE, ttl=TIMEOUT_SECONDS)
+cache = None
 
-def status():
-    resp = []
+class SimpleCache:
+    def __init__(self): pass
+    def get(self, key: str) -> str: pass
+    def set(self, key: str, value: str): pass
+    def status(self): pass
 
-    for key in sorted(cache.keys()):
-        adventure = cache.get(key)
-        resp.append({ 
-            "user": key, 
-            "id": adventure.id,
-            "current_location": adventure.current_location,
-            "game_active": adventure.game_active,
-        })
-    return resp
+class RedisCache(SimpleCache):
+    def __init__(self):
+        self.client = redis.Redis(host=os.environ['REDIS_IP'], port=6379, db=0)
+        self.client.ping()
 
-# Define the cache 
-def get(key: str) -> str:
-    # Simulate some data fetching or processing
-    logging.info(f"Fetching cache data for key: {key}")
-    pickle_string = cache.get(key, None)
+    def status(self):
+        # TODO
+        return []
 
-    if pickle_string is None:
-        return None
+    def get(self, key: str):
+        value = self.client.get(key)
+        pickle_string = value.decode('utf-8') if value is not None else None
 
-    return adventure_game.deserialize_game(pickle.loads(pickle_string))
+        if pickle_string is None:
+            return None
+        
+        return adventure_game.deserialize_game(pickle.loads(pickle_string))
 
-# Access the underlying cache from the decorated function
-def set(key: str, game):
-    """Manually set an item in the cache."""
-    cache[key] = adventure_game.serialize_game(game)
-    logging.info(f"Manually set {key} in the cache.")
-    print("Set cache item " + key + " to " +str(game))
-    return game
+    def set(self, key: str, game):
+        self.client.set(key, adventure_game.serialize_game(game))
+        return game
+
+class LocalCache(SimpleCache):
+    def __init__(self):
+        self.cache = TTLCache(maxsize=MAX_SIZE, ttl=TIMEOUT_SECONDS)
+
+    def status(self):
+        resp = []
+
+        for key in sorted(cache.keys()):
+            adventure = cache.get(key)
+            resp.append({ 
+                "user": key, 
+                "id": adventure.id,
+                "current_location": adventure.current_location,
+                "game_active": adventure.game_active,
+            })
+        return resp
+
+    # Define the cache 
+    def get(self, key: str) -> str:
+        # Simulate some data fetching or processing
+        logging.info(f"Fetching cache data for key: {key}")
+        pickle_string = cache.get(key, None)
+
+        if pickle_string is None:
+            return None
+
+        return adventure_game.deserialize_game(pickle.loads(pickle_string))
+
+    # Access the underlying cache from the decorated function
+    def set(self, key: str, game):
+        """Manually set an item in the cache."""
+        cache[key] = adventure_game.serialize_game(game)
+        logging.info(f"Manually set {key} in the cache.")
+        print("Set cache item " + key + " to " +str(game))
+        return game
+
+if os.environ.get('REDIS_IP',None) is not None:
+    cache = RedisCache()
+else:
+    cache = LocalCache()

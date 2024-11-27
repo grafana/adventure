@@ -27,7 +27,7 @@ def adventure():
         return { "error": "Invalid body" }, 400
     
     user = body['user']
-    adventure = adventure_cache.get(user)
+    adventure = adventure_cache.cache.get(user)
 
     # New player, make sure we track their adventure by name
     if adventure is None:
@@ -39,13 +39,13 @@ def adventure():
     response = adventure.command(body.get('command', ''))
 
     # Update cache; adventure has changed
-    adventure_cache.set(user, adventure)
-    
+    adventure_cache.cache.set(user, adventure)
+
     return { "response": response }, 200
 
 @app.route('/api/cache', methods=['GET'])
 def cache_status():
-    return adventure_cache.status(), 200
+    return adventure_cache.cache.status(), 200
 
 @app.route("/api/echo", methods=['POST'])
 def echo():

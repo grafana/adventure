@@ -5,6 +5,7 @@
 # You must put everything in quotes.
 
 ENDPOINT=http://localhost:3000/api/adventure
+#ENDPOINT=https://adventure-93209135917.us-east4.run.app/api/adventure
 PLAYER=moxious
 
 JSON=$(cat <<EOF
@@ -13,6 +14,7 @@ EOF
 )
 # echo $JSON
 # echo $ENDPOINT
-curl -XPOST $ENDPOINT -H 'Content-Type: application/json' -d "$JSON"
+response=$(curl -XPOST $ENDPOINT -H 'Content-Type: application/json' -d "$JSON")
 
+echo $response | jq -r '.response'
 echo

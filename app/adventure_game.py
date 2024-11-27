@@ -7,14 +7,16 @@ import logging
 import sys
 import uuid
 
+# Temporary nasty hack: disable colors until I can figure out how
+# to get terminal colors / escape codes to work in Grafana
 class Colors:
-    RESET = "\033[0m"
-    RED = "\033[31m"
-    GREEN = "\033[32m"
-    YELLOW = "\033[33m"
-    BLUE = "\033[34m"
-    MAGENTA = "\033[35m"
-    CYAN = "\033[36m"
+    RESET = '' # "\033[0m"
+    RED = '' # "\033[31m"
+    GREEN = '' # "\033[32m"
+    YELLOW = '' # "\033[33m"
+    BLUE = '' # "\033[34m"
+    MAGENTA = '' # "\033[35m"
+    CYAN = '' # "\033[36m"
 
 class AdventureGame:
     def __init__(self, adventurer_name):

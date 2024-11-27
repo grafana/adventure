@@ -35,7 +35,9 @@ def adventure():
         adventure_cache.set(user, adventure)
     
     print("Adventure " + adventure.id + " " + body.get('command', ''))
-    return adventure.command(body.get('command', ''))
+    response = adventure.command(body.get('command', ''))
+
+    return { "response": response }, 200
 
 
 @app.route("/api/echo", methods=['POST'])

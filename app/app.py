@@ -25,13 +25,16 @@ def adventure():
     if body is None or body.get('user', '') == '':
         return { "error": "Invalid body" }, 400
     
-    adventure = adventure_cache.get(body['user'])
+    user = body['user']
+    adventure = adventure_cache.get(user)
 
     # New player, make sure we track their adventure by name
     if adventure is None:
-        adventure = adventure_game.AdventureGame(body['user'])
-        adventure_cache.set(body['user'], adventure)
+        print("Creating new adventure for " + user)
+        adventure = adventure_game.AdventureGame(user)
+        adventure_cache.set(user, adventure)
     
+    print("Adventure " + adventure.id + " " + body.get('command', ''))
     return adventure.command(body.get('command', ''))
 
 

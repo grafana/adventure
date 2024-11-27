@@ -5,6 +5,7 @@ import threading
 import time
 import logging
 import sys
+import uuid
 
 class Colors:
     RESET = "\033[0m"
@@ -18,6 +19,7 @@ class Colors:
 class AdventureGame:
     def __init__(self, adventurer_name):
         # Get the adventurer's name from the user
+        self.id = str(uuid.uuid4())
         self.adventurer_name = adventurer_name
         logFW = CustomLogFW(service_name='adventure')
         handler = logFW.setup_logging()

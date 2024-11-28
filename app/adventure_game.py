@@ -48,7 +48,6 @@ class AdventureGame:
         self.trace = ct.get_trace()
         self.tracer = self.trace.get_tracer("AdventureGame")
         
-
         # Create an observable gauge for the forge heat level.
         self.forge_heat_gauge = meter.create_observable_gauge(
             name="forge_heat",

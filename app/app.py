@@ -20,6 +20,8 @@ games = {}
 def home():
     return render_template('index.html')
 
+games = []
+
 @app.route('/api/adventure', methods=['POST'])
 def adventure():
     body = request.json
@@ -40,6 +42,9 @@ def adventure():
 
     # Update cache; adventure has changed
     adventure_cache.cache.set(user, adventure)
+
+    if not adventure in games:
+        games.append(adventure)
 
     return { "response": response }, 200
 

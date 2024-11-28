@@ -108,19 +108,21 @@ jobs:
           with:
             project_id: ${{ secrets.GCLOUD_PROJECT }}  
 
-        - name: Deploy to Cloud Run
-          env:
-            REGION: us-east4
-            DOCKER_REGISTRY: us-east4-docker.pkg.dev
-            IMAGE_NAME: us-east4-docker.pkg.dev/${{ secrets.GCLOUD_PROJECT }}/dev-advocacy/adventure
-            IMAGE_TAG: latest        
-            GCP_PROJECT_ID: ${{ secrets.GCLOUD_PROJECT }}
-          run: |
-            gcloud run deploy adventure \
-              --project ${GCP_PROJECT_ID} \
-              --image ${IMAGE_NAME}:${IMAGE_TAG} \
-              --region ${REGION} \
-              --port 3000 \
-              --timeout 6m \
-              --update-env-vars FOO=bar
+        # Disable deploy step for now until we get it working full scope locally, then we can do the play bits.
+        # - name: Deploy to Cloud Run
+        #   env:
+        #     REGION: us-east4
+        #     DOCKER_REGISTRY: us-east4-docker.pkg.dev
+        #     IMAGE_NAME: us-east4-docker.pkg.dev/${{ secrets.GCLOUD_PROJECT }}/dev-advocacy/adventure
+        #     IMAGE_TAG: latest        
+        #     GCP_PROJECT_ID: ${{ secrets.GCLOUD_PROJECT }}
+        #   run: |
+        #     gcloud run deploy adventure \
+        #       --project ${GCP_PROJECT_ID} \
+        #       --image ${IMAGE_NAME}:${IMAGE_TAG} \
+        #       --region ${REGION} \
+        #       --port 3000 \
+        #       --timeout 6m \
+        #       --vpc-connector adventure-vpc-connector \
+        #       --update-env-vars FOO=bar,REDIS_IP=
           

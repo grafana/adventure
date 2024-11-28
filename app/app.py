@@ -33,7 +33,7 @@ def adventure():
     if adventure is None:
         print("Creating new adventure for " + user)
         adventure = adventure_game.AdventureGame(user)
-        adventure_cache.set(user, adventure)
+        adventure_cache.cache.set(user, adventure)
     
     print("Adventure " + adventure.id + " " + body.get('command', ''))
     response = adventure.command(body.get('command', ''))

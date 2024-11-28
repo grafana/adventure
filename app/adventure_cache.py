@@ -4,7 +4,7 @@ from time import sleep, time
 from otel import CustomLogFW, CustomMetrics, CustomTracer
 import logging
 import pickle
-import redis
+from pymemcache.client import base
 import os
 from . import adventure_game
 
@@ -26,24 +26,20 @@ logging.getLogger().setLevel(logging.INFO)
 
 cache = None
 
-class SimpleCache:
-    def __init__(self): pass
-    def get(self, key: str) -> str: pass
-    def set(self, key: str, value: str): pass
-    def status(self): pass
-
-class RedisCache(SimpleCache):
+class MemcachedCache:
     def __init__(self):
-        self.client = redis.Redis(host=os.environ['REDIS_IP'], port=6379, db=0)
-        self.client.ping()
+        tuple = (
+            os.environ.get('MEMCACHED_HOST', 'localhost'),
+            int(os.environ.get('MEMCACHED_PORT', 11211))
+        )
+        self.client = base.Client(tuple)
 
     def status(self):
         # TODO
         return []
 
     def get(self, key: str):
-        value = self.client.get(key)
-        pickle_string = value.decode('utf-8') if value is not None else None
+        pickle_string = self.client.get(key)
 
         if pickle_string is None:
             return None
@@ -54,7 +50,7 @@ class RedisCache(SimpleCache):
         self.client.set(key, adventure_game.serialize_game(game))
         return game
 
-class LocalCache(SimpleCache):
+class LocalCache:
     def __init__(self):
         self.cache = TTLCache(maxsize=MAX_SIZE, ttl=TIMEOUT_SECONDS)
 
@@ -90,7 +86,4 @@ class LocalCache(SimpleCache):
         print("Set cache item " + key + " to " +str(game))
         return game
 
-if os.environ.get('REDIS_IP',None) is not None:
-    cache = RedisCache()
-else:
-    cache = LocalCache()
+cache = MemcachedCache()

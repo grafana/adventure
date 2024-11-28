@@ -98,7 +98,7 @@ Quest World runs as a python application our recommended way to install it is to
 ## Microservice Mode
 
 ```
-$ python3 microservice.py 
+$ PORT=3001 python3 microservice.py 
 Logging configured with OpenTelemetry.
  * Serving Flask app 'app.app'
  * Debug mode: on

@@ -489,7 +489,7 @@ class Colors:
 def play(game):
     print(f"{Colors.GREEN}{game.here()}{Colors.RESET}")
 
-    with game.tracer.start_as_current_span(game.adventurer_name, attributes={"adventurer": game.adventurer_name}) as journey_span:
+    with game.tracer.start_as_current_span(game.adventurer_name, attributes=game.context) as journey_span:
         while game.game_active:
             command = input("> ")
             logging.info(f"Action by {game.adventurer_name}: " + command)
@@ -497,8 +497,7 @@ def play(game):
             # Create a span for each action taken by the player, with location attribute added
             with game.tracer.start_as_current_span(
                 f"action: {command}",
-                attributes={
-                    "adventurer": game.adventurer_name,
+                attributes=game.context | {
                     "location": game.current_location  # Adding location attribute to provide more context
                 }
             ) as action_span:

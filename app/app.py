@@ -6,6 +6,7 @@ import os
 import json
 import logging
 import time
+import random
 
 from . import adventure_game
 from . import adventure_cache
@@ -21,6 +22,9 @@ def home():
     return render_template('index.html')
 
 games = []
+
+main_adv = adventure_game.AdventureGame("main")
+adventure_cache.cache.set("main", main_adv)
 
 @app.route('/api/adventure', methods=['POST'])
 def adventure():
@@ -38,7 +42,8 @@ def adventure():
         adventure_cache.cache.set(user, adventure)
     
     print("Adventure " + adventure.id + " " + body.get('command', ''))
-    response = adventure.command(body.get('command', ''))
+    # response = adventure.command(body.get('command', ''))
+    response = main_adv.command(body.get('command', ''))
 
     # Update cache; adventure has changed
     adventure_cache.cache.set(user, adventure)
@@ -47,6 +52,21 @@ def adventure():
         games.append(adventure)
 
     return { "response": response }, 200
+
+@app.route('/api/adventurer', methods=['GET'])
+def adventurer_name():
+    givens = ['Godrick', 'Gawain', 'Percival', 'Lancelot', 'Tristan', 'Mordred', 'Bedivere', 'Galahad', 'Merlin', 'Arthur',
+            'Elaine', 'Isolde', 'Enid', 'Lynette', 'Guinevere', 'Morgana', 'Nimue', 'Viviane', 'Ragnell']
+    familial = ['son of', 'daughter of', 'house', 'clan', 'tribe', 'advisor to', 'squire to', 'knight of', 'page to', 'bard to']
+    surnames = ['the Brave', 'the Wise', 'the Fool', 'the Terrible', 'the Maladorous', 'the Unwashed', 
+                'the Chaste', 'the Pure', 'the Unyielding', 'the Unbreakable', 'the Unbowed', 'the Unbent',
+                'the Pious', 'the Faithful', 'the Valiant', 'the True',
+                'the Unworthy', 'the Unfortunate', 'the Mirthsome']
+
+    return {
+        "name": random.choice(givens) + " " + random.choice(surnames) + " (" + random.choice(familial) + " " + random.choice(givens) + ")"
+    }
+
 
 @app.route('/api/cache', methods=['GET'])
 def cache_status():

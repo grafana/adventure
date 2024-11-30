@@ -1,18 +1,21 @@
 from dotenv import load_dotenv
 load_dotenv()
-
+from otel import CustomLogFW
 from flask import Flask, render_template, request
-import os
 import json
 import logging
-import time
 import random
 
 from . import adventure_game
 from . import adventure_cache
+from . import forge
 
 app = Flask(__name__)
-logger = logging.getLogger("app")
+
+logFW = CustomLogFW(service_name='app')
+handler = logFW.setup_logging()
+logging.getLogger().addHandler(handler)
+logging.getLogger().setLevel(logging.INFO)
 
 # This is inefficient but it'll 
 games = {}
@@ -21,11 +24,6 @@ games = {}
 def home():
     return render_template('index.html')
 
-games = []
-
-main_adv = adventure_game.AdventureGame("main")
-adventure_cache.cache.set("main", main_adv)
-
 @app.route('/api/adventure', methods=['POST'])
 def adventure():
     body = request.json
@@ -33,25 +31,25 @@ def adventure():
         return { "error": "Invalid body" }, 400
     
     user = body['user']
-    adventure = adventure_cache.cache.get(user)
+    game_id = adventure_game.get_game_id(user)
+    adventure = adventure_cache.cache.get(game_id)
 
     # New player, make sure we track their adventure by name
     if adventure is None:
-        print("Creating new adventure for " + user)
         adventure = adventure_game.AdventureGame(user)
-        adventure_cache.cache.set(user, adventure)
+        forge.forge.initialize_forge(adventure)
+        adventure_cache.cache.set(adventure)
+    elif not forge.forge.is_tracking(adventure):
+        # When an adventure from another thread is found here, we need to re-initialize
+        # the forge to run on this thread, otherwise its state won't be maintained
+        forge.forge.initialize_forge(adventure)
     
-    print("Adventure " + adventure.id + " " + body.get('command', ''))
-    # response = adventure.command(body.get('command', ''))
-    response = main_adv.command(body.get('command', ''))
+    response = adventure.command(body.get('command', ''))
 
     # Update cache; adventure has changed
-    adventure_cache.cache.set(user, adventure)
+    adventure_cache.cache.set(adventure)
 
-    if not adventure in games:
-        games.append(adventure)
-
-    return { "response": response }, 200
+    return { "id": adventure.id, "response": response, "user": user }, 200
 
 @app.route('/api/adventurer', methods=['GET'])
 def adventurer_name():
@@ -63,13 +61,27 @@ def adventurer_name():
                 'the Pious', 'the Faithful', 'the Valiant', 'the True',
                 'the Unworthy', 'the Unfortunate', 'the Mirthsome']
 
-    return {
-        "name": random.choice(givens) + " " + random.choice(surnames) + " (" + random.choice(familial) + " " + random.choice(givens) + ")"
-    }
+    name = random.choice(givens) + " " + random.choice(surnames) + " (" + random.choice(familial) + " " + random.choice(givens) + ")"
+    logging.info("A hardy new adventurer approaches!  We shall call them " + name)
+    return { "name": name }
 
+@app.route('/api/forge', methods=['GET'])
+def get_forge_games():
+    """Warning make sure this is the method you want, this provides visibility into what
+    games the local forge is monitoring; not the total list of games."""
+    return list(forge.forge.games.keys()), 200
+
+@app.route('/api/game/<string:game_id>', methods=['GET'])
+def get_game_by_id(game_id):
+    adventure = adventure_cache.cache.get(game_id)
+    if adventure is None:
+        return { "error": "Game not found" }, 404
+
+    return adventure.get_state(), 200
 
 @app.route('/api/cache', methods=['GET'])
 def cache_status():
+    """Returns the full state of the memcached cache"""
     return adventure_cache.cache.status(), 200
 
 @app.route("/api/echo", methods=['POST'])
@@ -84,7 +96,7 @@ def echo():
         "remote_addr": request.remote_addr,
         "cookies": request.cookies,
     }
-    logger.info("CONTEXT " + json.dumps(context) + " BODY " + json.dumps(body))
+    logging.info("CONTEXT " + json.dumps(context) + " BODY " + json.dumps(body))
     return body
 
 @app.route('/api/health', methods=['GET'])

@@ -6,7 +6,8 @@
 
 ENDPOINT=http://localhost:3001/api/adventure
 #ENDPOINT=https://adventure-93209135917.us-east4.run.app/api/adventure
-PLAYER=Moxious
+
+PLAYER="${PLAYER:Bertrand}"
 
 JSON=$(cat <<EOF
 {"user":"$PLAYER", "command":"$1"}
@@ -14,7 +15,13 @@ EOF
 )
 # echo $JSON
 # echo $ENDPOINT
-response=$(curl -XPOST $ENDPOINT -H 'Content-Type: application/json' -d "$JSON")
+response=$(curl --silent -XPOST $ENDPOINT -H 'Content-Type: application/json' -d "$JSON")
 
-echo $response | jq -r '.response'
+id=$(echo $response | jq -r '.id')
+reply=$(echo $response | jq -r '.response')
+user=$(echo $response | jq -r '.user')
+
+echo "Player $user; game ID: $id"
+echo
+echo $reply
 echo

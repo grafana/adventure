@@ -127,9 +127,9 @@ class Forge:
     def observe_holy_swords(self, observer):
         def observe(game):
             sword_count = 0
-            if self.has_holy_sword:
+            if game.has_holy_sword:
                 sword_count = 1
-            elif self.has_evil_sword or self.has_sword: 
+            elif game.has_evil_sword or game.has_sword: 
                 sword_count = 0
             return [metrics.Observation(value=sword_count, attributes=game.context)]
         return self.for_all_games_observe(observe)
@@ -137,9 +137,9 @@ class Forge:
     def observe_evil_swords(self, observer):
         def observe(game):
             sword_count = 0
-            if self.has_evil_sword:
+            if game.has_evil_sword:
                 sword_count = 1
-            elif self.has_holy_sword or self.has_sword:
+            elif game.has_holy_sword or game.has_sword:
                 sword_count = 0
             return [metrics.Observation(value=sword_count, attributes=game.context)]
         return self.for_all_games_observe(observe)
@@ -186,7 +186,6 @@ class Forge:
                     game.heat = 0
                     game.is_heating_forge = False
 
-                print("Heated")
                 adventure_cache.cache.set(game)
         
         if updated > 0:

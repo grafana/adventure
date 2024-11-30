@@ -45,6 +45,7 @@ class MemcachedCache:
         result = {}
         print(index)
 
+        game_ids = []
         for key in index.keys():
             print("Index key " + key)
             game = self.get(key)
@@ -53,7 +54,10 @@ class MemcachedCache:
                 result[key] = 'Game not found'
             else:
                 result[key] = game.get_state()
+                game_ids.append(key)
         
+        result['game_ids'] = game_ids
+        result['games'] = len(game_ids)
         result[MemcachedCache.GAME_INDEX_KEY] = index
         return result
 

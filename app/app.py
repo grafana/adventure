@@ -53,15 +53,29 @@ def adventure():
 
 @app.route('/api/adventurer', methods=['GET'])
 def adventurer_name():
-    givens = ['Godrick', 'Gawain', 'Percival', 'Lancelot', 'Tristan', 'Mordred', 'Bedivere', 'Galahad', 'Merlin', 'Arthur',
-            'Elaine', 'Isolde', 'Enid', 'Lynette', 'Guinevere', 'Morgana', 'Nimue', 'Viviane', 'Ragnell']
-    familial = ['son of', 'daughter of', 'house', 'clan', 'tribe', 'advisor to', 'squire to', 'knight of', 'page to', 'bard to']
+    males = ['Godrick', 'Gawain', 'Percival', 'Lancelot', 'Tristan', 'Mordred', 'Bedivere', 'Galahad', 'Merlin', 'Arthur',
+             'Beavis', 'Ector', 'Gareth', 'Lucian', 'Grendel', 'Gavin', 'Loki', 'Mimir', 'Odin', 'Thor']
+    females = ['Elaine', 'Isolde', 'Enid', 'Lynette', 'Guinevere', 'Morgana', 'Nimue',
+              'Ingrid', 'Elanor', 'Arwen', 'Eowyn', 'Galadriel', 'Freyja',
+              'Viviane', 'Ragnell']
+    givens = females + males 
+    role = ['son of', 'daughter of', 'house', 'clan', 'tribe', 'librarian of', 
+            'scribe of', 'scribe for', 'treasurer to', 'steward to', 'chancellor to',
+            'advisor to', 'squire to', 'knight of', 'page to', 'bard to', 'plumber to',
+            'healer to', 'herald to', 'minstrel to', 'jester to', 'fool to', 'courtier to']
     surnames = ['the Brave', 'the Wise', 'the Fool', 'the Terrible', 'the Maladorous', 'the Unwashed', 
+                'the Talented', 'the Scourge', 'the Rogue', 'the Mage', 'the Sorcerer', 'the Wizard',
                 'the Chaste', 'the Pure', 'the Unyielding', 'the Unbreakable', 'the Unbowed', 'the Unbent',
-                'the Pious', 'the Faithful', 'the Valiant', 'the True',
-                'the Unworthy', 'the Unfortunate', 'the Mirthsome']
+                'the Pious', 'the Faithful', 'the Valiant', 'the True', 'the Flamboyant', 'the Unseen',
+                'the Unworthy', 'the Unfortunate', 'the Mirthsome'] + [ 
+                     # Patronynmics
+                     name + "son" for name in males
+                ] + [ 
+                    # Matronymics
+                    name + "dottir" for name in females 
+                ]
 
-    name = random.choice(givens) + " " + random.choice(surnames) + " (" + random.choice(familial) + " " + random.choice(givens) + ")"
+    name = random.choice(givens) + " " + random.choice(surnames) + " (" + random.choice(role) + " " + random.choice(givens) + ")"
     logging.info("A hardy new adventurer approaches!  We shall call them " + name)
     return { "name": name }
 

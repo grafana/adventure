@@ -73,6 +73,9 @@ def get_forge_games():
 
 @app.route('/api/game/<string:game_id>', methods=['GET'])
 def get_game_by_id(game_id):
+    if ' ' in game_id:
+        return { "error": "Not found " + game_id }, 404
+
     adventure = adventure_cache.cache.get(game_id)
     if adventure is None:
         return { "error": "Game not found" }, 404

@@ -23,6 +23,123 @@
     "panels": [
       {
         "datasource": {
+          "type": "yesoreyeram-infinity-datasource",
+          "uid": "PD79987051A2552AC"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "align": "auto",
+              "cellOptions": {
+                "type": "auto"
+              },
+              "inspect": false
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 3,
+          "w": 24,
+          "x": 0,
+          "y": 0
+        },
+        "id": 10,
+        "options": {
+          "cellHeight": "sm",
+          "footer": {
+            "countRows": false,
+            "fields": "",
+            "reducer": [
+              "sum"
+            ],
+            "show": false
+          },
+          "showHeader": true
+        },
+        "pluginVersion": "11.3.1",
+        "targets": [
+          {
+            "columns": [],
+            "datasource": {
+              "type": "yesoreyeram-infinity-datasource",
+              "uid": "PD79987051A2552AC"
+            },
+            "filters": [],
+            "format": "table",
+            "global_query_id": "",
+            "refId": "A",
+            "root_selector": "",
+            "source": "url",
+            "type": "json",
+            "url": "http://host.docker.internal:3001/api/game/$game",
+            "url_options": {
+              "data": "",
+              "method": "GET"
+            }
+          }
+        ],
+        "title": "",
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {
+                "blacksmith_burned_down": true,
+                "failed_sword_attempts": true,
+                "game_active": false,
+                "has_box": true,
+                "has_evil_sword": true,
+                "has_holy_sword": true,
+                "has_sword": true,
+                "heat": true,
+                "id": true,
+                "is_heating_forge": true,
+                "last_state_update": true,
+                "priest_alive": true,
+                "quest_accepted": true,
+                "start_time": false,
+                "sword_requested": true
+              },
+              "includeByName": {},
+              "indexByName": {},
+              "renameByName": {}
+            }
+          },
+          {
+            "id": "convertFieldType",
+            "options": {
+              "conversions": [
+                {
+                  "destinationType": "time",
+                  "targetField": "start_time"
+                }
+              ],
+              "fields": {}
+            }
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
         },
@@ -61,7 +178,7 @@
           "h": 8,
           "w": 12,
           "x": 0,
-          "y": 0
+          "y": 3
         },
         "id": 1,
         "options": {
@@ -174,7 +291,7 @@
           "h": 8,
           "w": 12,
           "x": 12,
-          "y": 0
+          "y": 3
         },
         "id": 6,
         "options": {
@@ -242,7 +359,7 @@
           "h": 4,
           "w": 3,
           "x": 0,
-          "y": 8
+          "y": 11
         },
         "id": 3,
         "options": {
@@ -315,7 +432,7 @@
           "h": 4,
           "w": 3,
           "x": 3,
-          "y": 8
+          "y": 11
         },
         "id": 4,
         "options": {
@@ -388,7 +505,7 @@
           "h": 4,
           "w": 3,
           "x": 6,
-          "y": 8
+          "y": 11
         },
         "id": 5,
         "options": {
@@ -458,9 +575,9 @@
         },
         "gridPos": {
           "h": 4,
-          "w": 4,
+          "w": 5,
           "x": 9,
-          "y": 8
+          "y": 11
         },
         "id": 9,
         "options": {
@@ -492,7 +609,7 @@
             "format": "dataframe",
             "global_query_id": "",
             "refId": "A",
-            "root_selector": "",
+            "root_selector": "table",
             "source": "url",
             "type": "json",
             "url": "http://host.docker.internal:3001/api/cache",
@@ -502,7 +619,30 @@
             }
           }
         ],
-        "title": "Active Games",
+        "title": "Server-Wide: Active Games",
+        "transformations": [
+          {
+            "id": "reduce",
+            "options": {
+              "includeTimeField": false,
+              "mode": "reduceFields",
+              "reducers": [
+                "count"
+              ]
+            }
+          },
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {
+                "user": true
+              },
+              "includeByName": {},
+              "indexByName": {},
+              "renameByName": {}
+            }
+          }
+        ],
         "type": "stat"
       },
       {
@@ -518,7 +658,7 @@
           "h": 7,
           "w": 24,
           "x": 0,
-          "y": 12
+          "y": 15
         },
         "id": 7,
         "options": {
@@ -560,7 +700,7 @@
           "h": 5,
           "w": 24,
           "x": 0,
-          "y": 19
+          "y": 22
         },
         "id": 8,
         "options": {
@@ -577,7 +717,7 @@
         "targets": [
           {
             "editorMode": "builder",
-            "expr": "{service_name=\"forge\"} |= `$game`",
+            "expr": "{service_name=\"forge\"} |= `$game` |= `game_id`",
             "queryType": "range",
             "refId": "A"
           }
@@ -594,8 +734,8 @@
       "list": [
         {
           "current": {
-            "text": "fe017439-243c-34b6-b2ab-793a31782899",
-            "value": "fe017439-243c-34b6-b2ab-793a31782899"
+            "text": "c9390fce-61c9-3f97-98b0-5073282eaa7a",
+            "value": "c9390fce-61c9-3f97-98b0-5073282eaa7a"
           },
           "datasource": {
             "type": "yesoreyeram-infinity-datasource",
@@ -629,13 +769,13 @@
       ]
     },
     "time": {
-      "from": "now-30m",
+      "from": "now-1h",
       "to": "now"
     },
     "timepicker": {},
     "timezone": "browser",
     "title": "Adventure2",
     "uid": "ae5j8zqkqm8sge",
-    "version": 2,
+    "version": 4,
     "weekStart": ""
   }

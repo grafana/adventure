@@ -4,7 +4,9 @@ from time import sleep, time
 from otel import CustomLogFW, CustomMetrics, CustomTracer
 import logging
 import pickle
-from pymemcache.client import base
+import time
+import json
+from pymemcache.client.base import PooledClient
 import os
 from . import adventure_game
 
@@ -19,71 +21,95 @@ from . import adventure_game
 TIMEOUT_SECONDS = 7200 # 2 hours
 MAX_SIZE = 500
 
-logFW = CustomLogFW(service_name='adventure')
-handler = logFW.setup_logging()
-logging.getLogger().addHandler(handler)
-logging.getLogger().setLevel(logging.INFO)
-
 cache = None
 
 class MemcachedCache:
+    GAME_INDEX_KEY = "game_index"
+    # Evict games after 3 hours
+    MAX_GAME_AGE_MS = 1000 * 60 * 60 * 3
+
+    logFW = CustomLogFW(service_name='adventure_cache')
+    handler = logFW.setup_logging()
+    logging.getLogger().addHandler(handler)
+    logging.getLogger().setLevel(logging.INFO)
+
     def __init__(self):
         tuple = (
             os.environ.get('MEMCACHED_HOST', 'localhost'),
             int(os.environ.get('MEMCACHED_PORT', 11211))
         )
-        self.client = base.Client(tuple)
+        self.client = PooledClient(tuple, max_pool_size=4)
 
     def status(self):
-        # TODO
-        return []
+        index = self.get_index()
+        result = {}
+        print(index)
+
+        for key in index.keys():
+            print("Index key " + key)
+            game = self.get(key)
+
+            if game is None:
+                result[key] = 'Game not found'
+            else:
+                result[key] = game.get_state()
+        
+        result[MemcachedCache.GAME_INDEX_KEY] = index
+        return result
+
+    def evict_old_games(self, index):
+        now = int(time.time() * 1000)
+        
+        evicted = 0
+        for key in index:
+            entered = index[key]
+            if entered + MemcachedCache.MAX_GAME_AGE_MS < now:
+                logging.info("Evicting game", extra={"game_id": key, "now": now, "entered": entered})
+                self.client.delete(key)
+                del index[key]
+                evicted += 1
+        
+        if evicted > 0:
+            logging.info(f"Evicted {evicted} games", extra={"evicted": evicted})
+            self.client.set(MemcachedCache.GAME_INDEX_KEY, json.dumps(index))
+
+    def get_index(self, retries=0):
+        val = self.client.get(MemcachedCache.GAME_INDEX_KEY)
+        
+        if val is None:
+            return {}
+        
+        return json.loads(val)
+
+    def update_index(self, game):
+        """Updates the total list of games that we are tracking"""
+        index = self.get_index()
+        index[game.id] = int(time.time() * 1000)
+        self.client.set(MemcachedCache.GAME_INDEX_KEY, json.dumps(index))
+        self.evict_old_games(index)
+        return game
 
     def get(self, key: str):
-        pickle_string = self.client.get(key)
+        """Get a game by a given ID.  Can return None if it doesn't exist"""
+        try:
+            json_string = self.client.get(key)
+        except KeyError as e:
+            return None
 
-        if pickle_string is None:
+        if json_string is None:
             return None
         
-        return adventure_game.deserialize_game(pickle.loads(pickle_string))
+        return adventure_game.from_json(json_string)
 
-    def set(self, key: str, game):
-        self.client.set(key, adventure_game.serialize_game(game))
-        return game
+    def set(self, game):
+        """Set a game in the cache; returns the game"""
 
-class LocalCache:
-    def __init__(self):
-        self.cache = TTLCache(maxsize=MAX_SIZE, ttl=TIMEOUT_SECONDS)
+        if game is None or game.id is None:
+            raise ValueError("Game must be valid and have an ID")
 
-    def status(self):
-        resp = []
-
-        for key in sorted(cache.keys()):
-            adventure = cache.get(key)
-            resp.append({ 
-                "user": key, 
-                "id": adventure.id,
-                "current_location": adventure.current_location,
-                "game_active": adventure.game_active,
-            })
-        return resp
-
-    # Define the cache 
-    def get(self, key: str) -> str:
-        # Simulate some data fetching or processing
-        logging.info(f"Fetching cache data for key: {key}")
-        pickle_string = cache.get(key, None)
-
-        if pickle_string is None:
-            return None
-
-        return adventure_game.deserialize_game(pickle.loads(pickle_string))
-
-    # Access the underlying cache from the decorated function
-    def set(self, key: str, game):
-        """Manually set an item in the cache."""
-        cache[key] = adventure_game.serialize_game(game)
-        logging.info(f"Manually set {key} in the cache.")
-        print("Set cache item " + key + " to " +str(game))
-        return game
+        # Always update last modified time ms so readers can tell if the game is stale
+        game.last_state_update = int(time.time()*1000)
+        self.client.set(game.id, adventure_game.to_json(game))
+        return self.update_index(game)
 
 cache = MemcachedCache()

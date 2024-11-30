@@ -187,7 +187,7 @@ class Forge:
                     game.is_heating_forge = False
 
                 print("Heated")
-                adventure_cache.cache.set(key, game)
+                adventure_cache.cache.set(game)
         
         if updated > 0:
             self.update_counter.add(updated)

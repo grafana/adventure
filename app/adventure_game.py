@@ -7,7 +7,8 @@ import logging
 import sys
 import time
 import uuid
-import pickle
+import json
+from . import forge
 
 # Temporary nasty hack: disable colors until I can figure out how
 # to get terminal colors / escape codes to work in Grafana
@@ -20,60 +21,37 @@ class Colors:
     MAGENTA = '' # "\033[35m"
     CYAN = '' # "\033[36m"
 
-def serialize_game(game):
+def to_json(game):
     state = game.get_state()
-    return pickle.dumps(state)
+    return json.dumps(state)
 
-def deserialize_game(serialized_game):
-    game = AdventureGame(serialized_game["adventurer_name"])
-    game.set_state(serialized_game)
+def from_json(serialized_game):
+    state = json.loads(serialized_game)
+    game = AdventureGame(state["adventurer_name"])
+    game.set_state(state)
     return game 
 
+def get_game_id(adventurer_name):
+    # Generate a unique ID that's tied to an adventurer's name, consistently
+    return str(uuid.uuid3(uuid.NAMESPACE_URL, adventurer_name))
+
 class AdventureGame:
+    logFW = CustomLogFW(service_name='adventure')
+    handler = logFW.setup_logging()
+    logging.getLogger().addHandler(handler)
+    logging.getLogger().setLevel(logging.INFO)
+
     def __init__(self, adventurer_name):
         # Get the adventurer's name from the user
-        self.id = str(uuid.uuid4())
         self.adventurer_name = adventurer_name
-        logFW = CustomLogFW(service_name='adventure')
-        handler = logFW.setup_logging()
-        logging.getLogger().addHandler(handler)
-        logging.getLogger().setLevel(logging.INFO)
+
+        # The ID of the game is based on the name, so it's consistent across sessions
+        self.id = get_game_id(self.adventurer_name)
+
         self.context = { "game_id": self.id, "adventurer": adventurer_name }
 
-        self.start_time = int(time.time())
-
-        metrics = CustomMetrics(service_name='adventure')
-        meter = metrics.get_meter()
-
-        ct = CustomTracer()
-        self.trace = ct.get_trace()
-        self.tracer = self.trace.get_tracer("AdventureGame")
-        
-        # Create an observable gauge for the forge heat level.
-        self.forge_heat_gauge = meter.create_observable_gauge(
-            name="forge_heat",
-            description="The current heat level of the forge",
-            callbacks=[self.observe_forge_heat]
-        )
-
-        # Create an observable gauge for how many swords have been forged.
-        self.swords_gauge = meter.create_observable_gauge(
-            name="swords",
-            description="The number of swords forged",
-            callbacks=[self.observe_swords]
-        )
-
-        self.holy_sword_gauge = meter.create_observable_gauge(
-            name="holy_sword",
-            description="The number of holy swords",
-            callbacks=[self.observe_holy_swords]
-        )
-
-        self.evil_sword_gauge = meter.create_observable_gauge(
-            name="evil_sword",
-            description="The number of evil swords",
-            callbacks=[self.observe_evil_swords]
-        )
+        self.start_time = int(time.time()*1000)
+        self.last_state_update = int(time.time()*1000)
 
         self.game_active = True
         self.current_location = "start"
@@ -88,8 +66,6 @@ class AdventureGame:
         self.quest_accepted = False # Track if the quest has been accepted
         self.priest_alive = True
         self.has_box = False
-
-        self.start_heat_forge_thread()
 
         self.locations = {
             "start": {
@@ -220,54 +196,6 @@ class AdventureGame:
         self.cool_forge()
         return "You help the town rebuild the blacksmith. The blacksmith is grateful."
     
-    # TODO: remove thread for multiplayer microservices mode
-    # Instead add a start time, and do math based on number of seconds elapsed since start
-    # to determine forge heat; do math to update state
-    # each time a command is given.
-    def start_heat_forge_thread(self):
-        def increase_heat_loop():
-            while self.game_active:
-                time.sleep(1)
-                self.increase_heat_periodically()
-        
-        thread = threading.Thread(target=increase_heat_loop)
-        thread.daemon = True
-        thread.start()
-
-    def increase_heat_periodically(self):
-        if self.is_heating_forge:
-            self.heat += 1
-            if self.heat >= 50 and not self.blacksmith_burned_down:
-                self.blacksmith_burned_down = True
-                self.is_heating_forge = False
-    
-    def observe_forge_heat(self, observer):
-        return [metrics.Observation(value=self.heat, attributes={"location": "blacksmith"} | self.context)]
-    
-    def observe_swords(self, observer):
-        sword_count = 0
-        if self.has_sword:
-            sword_count = 1
-        elif self.has_evil_sword or self.has_holy_sword:
-            sword_count = 0
-        return [metrics.Observation(value=sword_count, attributes=self.context)]
-    
-    def observe_holy_swords(self, observer):
-        sword_count = 0
-        if self.has_holy_sword:
-            sword_count = 1
-        elif self.has_evil_sword or self.has_sword: 
-            sword_count = 0
-        return [metrics.Observation(value=sword_count, attributes=self.context)]
-    
-    def observe_evil_swords(self, observer):
-        sword_count = 0
-        if self.has_evil_sword:
-            sword_count = 1
-        elif self.has_holy_sword or self.has_sword:
-            sword_count = 0
-        return [metrics.Observation(value=sword_count, attributes=self.context)]
-
     def cool_forge(self):
         self.heat = 0
         self.is_heating_forge = False
@@ -443,7 +371,7 @@ class AdventureGame:
     def command(self, command):
         response_buf = ""
         # Create a span for each action taken by the player, with location attribute added
-        with self.tracer.start_as_current_span(
+        with forge.forge.tracer.start_as_current_span(
             f"action: {command}",
             attributes=self.context | {
                 "location": self.current_location  # Adding location attribute to provide more context
@@ -461,11 +389,14 @@ class AdventureGame:
                 action_span.set_status(Status(StatusCode.OK))
                 return "Adventure ended"
             
+            self.last_state_update = int(time.time()*1000)
             return response_buf
 
     def get_state(self):
+        """Returns a dictionary of game state that can be re-established when an object
+        is unpickled from the cache"""
         keys = [
-            'adventurer_name', 'start_time', 
+            'adventurer_name', 'start_time', 'last_state_update', 'id',
             'game_active', 'current_location', 'is_heating_forge', 'blacksmith_burned_down', 'heat', 
             'sword_requested', 'failed_sword_attempts', 'has_sword', 'has_evil_sword', 'has_holy_sword', 'quest_accepted', 'priest_alive', 'has_box'
         ]
@@ -476,7 +407,11 @@ class AdventureGame:
         return d
 
     def set_state(self, state):
+        """When unpickling an object, this sets state fields on the object to re-create proper state.
+        Ensure you only call this with something from get_state() or unpickled.
+        """
         self.__dict__.update(state)
+        self.context = { "game_id": self.id, "adventurer": self.adventurer_name }
 
     def restart_adventure(self):
         # Allow the user to restart the adventure with the same name or a new name
@@ -498,6 +433,3 @@ class AdventureGame:
         self.priest_alive = True
         self.heat = 0  # Reset the forge heat
         self.has_box = False
-
-        # Restart the heat forge thread
-        self.start_heat_forge_thread()

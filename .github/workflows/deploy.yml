@@ -130,6 +130,5 @@ jobs:
               --vpc-egress=private-ranges-only \
               --port 3000 \
               --timeout 6m \
-              --vpc-connector adventure-vpc-connector \
               --update-env-vars MEMCACHED_HOST=10.150.0.3,MEMCACHED_PORT=11211
           

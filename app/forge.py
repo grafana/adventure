@@ -97,15 +97,15 @@ class Forge:
         for key in self.games.keys():
             game = adventure_cache.cache.get(key)
             if game is None:
-                print("MISS for ",key)
                 deleted.append(key)
+                continue
+            if not game.is_active():
                 continue
             observations.extend(action(game))
 
         # If a game was deleted from the underlying store; remove it from what
         # we're tracking.
         if len(deleted) > 0:
-            print("Deleted games", deleted)
             self.games = {key: value for key, value in self.games.items() if key not in deleted}
             self.game_counter.add(len(deleted) * -1)
 
@@ -156,11 +156,6 @@ class Forge:
         self.games[game.id] = int(time.time()*1000)
         self.log.info(f"Initializing forge for game", extra=self.context | { "game_id": game.id })
         self.game_counter.add(1)
-
-    # TODO: figure out how to monkeypatch TTLCache to support eventing on eviction
-    # def evict_game(self, key, value):
-    #     self.log.info(f"Cache eviction", extra={"game_id":key} | self.context)
-    #    self.game_counter.add(-1)
 
     def increase_heat_periodically(self):
         updated = 0

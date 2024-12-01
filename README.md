@@ -95,6 +95,29 @@ Quest World runs as a python application our recommended way to install it is to
    python main.py
    ```
 
+## Microservice Mode
+
+```
+$ PORT=3001 python3 microservice.py 
+Logging configured with OpenTelemetry.
+ * Serving Flask app 'app.app'
+ * Debug mode: on
+Logging configured with OpenTelemetry.
+```
+
+To interact with it, simply use the `interact.sh` script so you don't have to keep JSON posting.
+
+```
+$ ./interact.sh 'look around'
+You are at the beginning of your adventure. There's a path leading north towards a town, and another path leading east towards a forest.
+Available actions: go to town, go to forest, cheat, look around
+$ ./interact.sh 'go to town'
+You are in a bustling town. People are going about their business. You see a blacksmith, a mysterious man wandering the streets, a quest giver, and a chapel.
+Available actions: blacksmith, rebuild blacksmith, mysterious man, wizard, quest giver, chapel, look around
+```
+
+(This works by using curl to POST to `http://localhost:3000/api/adventure`)
+
 <!-- INTERACTIVE page step1.md END -->
 
 <!-- INTERACTIVE page step2.md START -->

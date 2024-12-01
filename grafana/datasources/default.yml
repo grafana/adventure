@@ -24,7 +24,6 @@ datasources:
       datasourceUid: 'loki'
     tracesToMetrics:
       datasourceUid: 'prometheus'
-
-
-
-
+- name: infinity
+  type: yesoreyeram-infinity-datasource
+  basicAuth: false

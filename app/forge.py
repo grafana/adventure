@@ -95,7 +95,6 @@ class Forge:
         deleted = []
 
         for key in self.games.keys():
-            print("Getting latest game for ",key)
             game = adventure_cache.cache.get(key)
             if game is None:
                 print("MISS for ",key)

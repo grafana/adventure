@@ -734,8 +734,8 @@
     "list": [
       {
         "current": {
-          "text": "cfb7dcd3-f4a0-33cf-9948-e704c039ac10",
-          "value": "cfb7dcd3-f4a0-33cf-9948-e704c039ac10"
+          "text": "Freyja the Brave (jester to Bedivere)",
+          "value": "d09a65e4-13a5-3ad7-b646-d366b19b6ec5"
         },
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
@@ -746,11 +746,22 @@
         "options": [],
         "query": {
           "infinityQuery": {
-            "columns": [],
+            "columns": [
+              {
+                "selector": "user",
+                "text": "user__text",
+                "type": "string"
+              },
+              {
+                "selector": "game_id",
+                "text": "game_id",
+                "type": "string"
+              }
+            ],
             "filters": [],
             "format": "table",
             "refId": "variable",
-            "root_selector": "game_ids",
+            "root_selector": "table",
             "source": "url",
             "type": "json",
             "url": "http://host.docker.internal:3001/api/cache",
@@ -776,6 +787,6 @@
   "timezone": "browser",
   "title": "Adventure2",
   "uid": "ae5j8zqkqm8sge",
-  "version": 3,
+  "version": 4,
   "weekStart": ""
 }

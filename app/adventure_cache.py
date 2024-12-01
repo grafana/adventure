@@ -7,23 +7,11 @@ from pymemcache.client.base import PooledClient
 import os
 from . import adventure_game
 
-# This is a cheapo caching implementation that will keep track of all the adventures we've got going on
-# but will let them age out and disappear after a while.
-#
-# This will be fine for up to hundreds of users but will not scale if the container needs to scale, because
-# multiple replicas of the container won't share caches, and hence we'd need to swap in something like redis
-# later if we were actually serious.
-# 
-# This code can easily be replaced with a redis cache lookup later though.
-TIMEOUT_SECONDS = 7200 # 2 hours
-MAX_SIZE = 500
-
 cache = None
 
 class MemcachedCache:
+    """A simple cache for storing AdventureGame objects in memcached"""
     GAME_INDEX_KEY = "game_index"
-    # Evict games after 3 hours
-    MAX_GAME_AGE_MS = 1000 * 60 * 60 * 3
 
     logFW = CustomLogFW(service_name='adventure_cache')
     handler = logFW.setup_logging()
@@ -65,9 +53,11 @@ class MemcachedCache:
         now = int(time.time() * 1000)
         
         evicted = 0
-        for key in index:
+        for key in list(index.keys()):
             entered = index[key]
-            if entered + MemcachedCache.MAX_GAME_AGE_MS < now:
+            # print("Checking " + key + " entered " + str(entered) + " for evictability at " + (str(entered + adventure_game.AdventureGame.MAX_GAME_AGE_MS)) + " now: " + str(now))
+            if now > entered + adventure_game.AdventureGame.MAX_GAME_AGE_MS:
+                print("Evicting " + key)
                 self.log.info("Evicting game", extra={"game_id": key, "now": now, "entered": entered})
                 self.client.delete(key)
                 del index[key]
@@ -88,8 +78,13 @@ class MemcachedCache:
     def update_index(self, game):
         """Updates the total list of games that we are tracking"""
         index = self.get_index()
-        index[game.id] = int(time.time() * 1000)
-        self.client.set(self.make_key(MemcachedCache.GAME_INDEX_KEY), json.dumps(index))
+
+        # Do not modify the entered timestamp unless it's the first time into the index
+        # This lets us evict old games later.  Note that sometimes the index may not have changed
+        if game.id not in index:
+            index[game.id] = int(time.time() * 1000)
+            self.client.set(self.make_key(MemcachedCache.GAME_INDEX_KEY), json.dumps(index))
+
         self.evict_old_games(index)
         return game
 

@@ -41,6 +41,9 @@ class AdventureGame:
     logging.getLogger('adventure').addHandler(handler)
     logging.getLogger('adventure').setLevel(logging.INFO)
 
+    # How long games can stay idle before they're forgotten/evicted.
+    MAX_GAME_AGE_MS = 1000 * 60 * 60 * 3
+
     def __init__(self, adventurer_name):
         # Get the adventurer's name from the user
         self.adventurer_name = adventurer_name
@@ -52,6 +55,8 @@ class AdventureGame:
 
         self.start_time = int(time.time()*1000)
         self.last_state_update = int(time.time()*1000)
+        self.last_command = int(time.time()*1000)
+        self.commands = 0
 
         self.game_active = True
         self.current_location = "start"
@@ -167,6 +172,10 @@ class AdventureGame:
             }
         }
     
+    def is_active(self):
+        now = int(time.time() * 1000)
+        return self.game_active and now <= self.last_command + AdventureGame.MAX_GAME_AGE_MS
+
     def take_box(self):
         if self.has_box:
             return "You already have the box."
@@ -370,6 +379,8 @@ class AdventureGame:
 
     def command(self, command):
         response_buf = ""
+        self.commands += 1 
+        self.last_command = int(time.time()*1000)
         # Create a span for each action taken by the player, with location attribute added
         with forge.forge.tracer.start_as_current_span(
             f"action: {command}",
@@ -396,7 +407,7 @@ class AdventureGame:
         """Returns a dictionary of game state that can be re-established when an object
         is unpickled from the cache"""
         keys = [
-            'adventurer_name', 'start_time', 'last_state_update', 'id',
+            'adventurer_name', 'start_time', 'last_state_update', 'last_command', 'id', 'commands',
             'game_active', 'current_location', 'is_heating_forge', 'blacksmith_burned_down', 'heat', 
             'sword_requested', 'failed_sword_attempts', 'has_sword', 'has_evil_sword', 'has_holy_sword', 'quest_accepted', 'priest_alive', 'has_box'
         ]

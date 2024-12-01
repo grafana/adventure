@@ -108,21 +108,28 @@ jobs:
           with:
             project_id: ${{ secrets.GCLOUD_PROJECT }}  
 
-        # Disable deploy step for now until we get it working full scope locally, then we can do the play bits.
-        # - name: Deploy to Cloud Run
-        #   env:
-        #     REGION: us-east4
-        #     DOCKER_REGISTRY: us-east4-docker.pkg.dev
-        #     IMAGE_NAME: us-east4-docker.pkg.dev/${{ secrets.GCLOUD_PROJECT }}/dev-advocacy/adventure
-        #     IMAGE_TAG: latest        
-        #     GCP_PROJECT_ID: ${{ secrets.GCLOUD_PROJECT }}
-        #   run: |
-        #     gcloud run deploy adventure \
-        #       --project ${GCP_PROJECT_ID} \
-        #       --image ${IMAGE_NAME}:${IMAGE_TAG} \
-        #       --region ${REGION} \
-        #       --port 3000 \
-        #       --timeout 6m \
-        #       --vpc-connector adventure-vpc-connector \
-        #       --update-env-vars FOO=bar,REDIS_IP=
+        - name: Get branch names.
+          id: branch-names
+          uses: tj-actions/branch-names@v8
+
+        - name: Deploy to Cloud Run
+          env:
+            REGION: us-east4
+            DOCKER_REGISTRY: us-east4-docker.pkg.dev
+            IMAGE_NAME: us-east4-docker.pkg.dev/${{ secrets.GCLOUD_PROJECT }}/dev-advocacy/adventure
+            IMAGE_TAG: latest        
+            GCP_PROJECT_ID: ${{ secrets.GCLOUD_PROJECT }}
+          # Network settings are important to permit connecting to the memcached instance
+          run: |
+            gcloud run deploy adventure-${{ steps.branch-names.outputs.current_branch }} \
+              --project ${GCP_PROJECT_ID} \
+              --image ${IMAGE_NAME}:${IMAGE_TAG} \
+              --region ${REGION} \
+              --network=default \
+              --subnet=default \
+              --vpc-egress=private-ranges-only \
+              --port 3000 \
+              --timeout 6m \
+              --vpc-connector adventure-vpc-connector \
+              --update-env-vars MEMCACHED_HOST=10.150.0.3,MEMCACHED_PORT=11211
           

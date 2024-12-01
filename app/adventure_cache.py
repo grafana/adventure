@@ -21,10 +21,14 @@ from . import adventure_game
 TIMEOUT_SECONDS = 7200 # 2 hours
 MAX_SIZE = 500
 
+# Allow the env to set a key prefix so we can have multiple copies/deployments in the same
+# memcachd instance
+KEY_PREFIX = os.environ.get('CACHE_KEY_PREFIX', 'main')
+
 cache = None
 
 class MemcachedCache:
-    GAME_INDEX_KEY = "game_index"
+    GAME_INDEX_KEY = KEY_PREFIX + "_game_index"
     # Evict games after 3 hours
     MAX_GAME_AGE_MS = 1000 * 60 * 60 * 3
 
@@ -115,7 +119,7 @@ class MemcachedCache:
 
         # Always update last modified time ms so readers can tell if the game is stale
         game.last_state_update = int(time.time()*1000)
-        self.client.set(game.id, adventure_game.to_json(game))
+        self.client.set(KEY_PREFIX + "_" + game.id, adventure_game.to_json(game))
         return self.update_index(game)
 
 cache = MemcachedCache()

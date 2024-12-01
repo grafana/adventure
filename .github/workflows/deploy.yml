@@ -130,5 +130,5 @@ jobs:
               --vpc-egress=private-ranges-only \
               --port 3000 \
               --timeout 6m \
-              --update-env-vars MEMCACHED_HOST=10.150.0.3,MEMCACHED_PORT=11211
+              --update-env-vars CACHE_KEY_PREFIX=${{ steps.branch-names.outputs.current_branch }},MEMCACHED_HOST=10.150.0.3,MEMCACHED_PORT=11211
           

@@ -14,8 +14,9 @@ app = Flask(__name__)
 
 logFW = CustomLogFW(service_name='app')
 handler = logFW.setup_logging()
-logging.getLogger().addHandler(handler)
-logging.getLogger().setLevel(logging.INFO)
+log = logging.getLogger('app')
+log.addHandler(handler)
+log.setLevel(logging.INFO)
 
 # This is inefficient but it'll 
 games = {}
@@ -37,8 +38,8 @@ def adventure():
     # New player, make sure we track their adventure by name
     if adventure is None:
         adventure = adventure_game.AdventureGame(user)
-        forge.forge.initialize_forge(adventure)
         adventure_cache.cache.set(adventure)
+        forge.forge.initialize_forge(adventure)
     elif not forge.forge.is_tracking(adventure):
         # When an adventure from another thread is found here, we need to re-initialize
         # the forge to run on this thread, otherwise its state won't be maintained
@@ -76,7 +77,7 @@ def adventurer_name():
                 ]
 
     name = random.choice(givens) + " " + random.choice(surnames) + " (" + random.choice(role) + " " + random.choice(givens) + ")"
-    logging.info("A hardy new adventurer approaches!  We shall call them " + name)
+    log.info("A hardy new adventurer approaches!  We shall call them " + name)
     return { "name": name }
 
 @app.route('/api/forge', methods=['GET'])
@@ -113,7 +114,7 @@ def echo():
         "remote_addr": request.remote_addr,
         "cookies": request.cookies,
     }
-    logging.info("CONTEXT " + json.dumps(context) + " BODY " + json.dumps(body))
+    log.info("CONTEXT " + json.dumps(context) + " BODY " + json.dumps(body))
     return body
 
 @app.route('/api/health', methods=['GET'])

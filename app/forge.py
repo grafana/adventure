@@ -23,8 +23,8 @@ MAX_SIZE = 5000
 class Forge:
     logFW = CustomLogFW(service_name='forge')
     handler = logFW.setup_logging()
-    logging.getLogger().addHandler(handler)
-    logging.getLogger().setLevel(logging.INFO)
+    logging.getLogger('forge').addHandler(handler)
+    logging.getLogger('forge').setLevel(logging.INFO)
 
     forge_metrics = CustomMetrics(service_name='forge')
     forge_meter = forge_metrics.get_meter()
@@ -41,7 +41,7 @@ class Forge:
         # Short ID based on time of generation, good enough for now
         self.id = hashlib.md5(bytes(f"{time.time()}","utf-8")).hexdigest()
         self.context = { "id": self.id }
-
+        self.log = logging.getLogger('forge')
         # Create caches that evicts items older than 3 hours
         # Keys are assigned/entered *once* to prevent resetting ttl
         self.games = TTLCache(maxsize=MAX_SIZE, ttl=60*60*3)
@@ -95,8 +95,10 @@ class Forge:
         deleted = []
 
         for key in self.games.keys():
+            print("Getting latest game for ",key)
             game = adventure_cache.cache.get(key)
             if game is None:
+                print("MISS for ",key)
                 deleted.append(key)
                 continue
             observations.extend(action(game))
@@ -106,6 +108,7 @@ class Forge:
         if len(deleted) > 0:
             print("Deleted games", deleted)
             self.games = {key: value for key, value in self.games.items() if key not in deleted}
+            self.game_counter.add(len(deleted) * -1)
 
         return observations
 
@@ -152,12 +155,12 @@ class Forge:
         # Key is associated with its time of entry so that we can later evict old/inactive
         # games. TODO
         self.games[game.id] = int(time.time()*1000)
-        logging.info(f"Initializing forge for game", extra=self.context | { "game_id": game.id })
+        self.log.info(f"Initializing forge for game", extra=self.context | { "game_id": game.id })
         self.game_counter.add(1)
 
     # TODO: figure out how to monkeypatch TTLCache to support eventing on eviction
     # def evict_game(self, key, value):
-    #     logging.info(f"Cache eviction", extra={"game_id":key} | self.context)
+    #     self.log.info(f"Cache eviction", extra={"game_id":key} | self.context)
     #    self.game_counter.add(-1)
 
     def increase_heat_periodically(self):
@@ -181,7 +184,7 @@ class Forge:
                 updated += 1
                 game.heat += 1
                 if game.heat >= 50:
-                    logging.info("Blacksmith burned down", extra=self.context | { "game_id": game.id })
+                    self.log.info("Blacksmith burned down", extra=self.context | { "game_id": game.id })
                     game.blacksmith_burned_down = True
                     game.heat = 0
                     game.is_heating_forge = False
@@ -190,7 +193,7 @@ class Forge:
         
         if updated > 0:
             self.update_counter.add(updated)
-            logging.info(f"Increased heat {updated} of {total} games", extra=self.context)
+            self.log.info(f"Increased heat {updated} of {total} games", extra=self.context)
 
     def get_thread(self): return self.thread
 

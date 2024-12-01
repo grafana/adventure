@@ -38,8 +38,8 @@ def get_game_id(adventurer_name):
 class AdventureGame:
     logFW = CustomLogFW(service_name='adventure')
     handler = logFW.setup_logging()
-    logging.getLogger().addHandler(handler)
-    logging.getLogger().setLevel(logging.INFO)
+    logging.getLogger('adventure').addHandler(handler)
+    logging.getLogger('adventure').setLevel(logging.INFO)
 
     def __init__(self, adventurer_name):
         # Get the adventurer's name from the user
@@ -47,7 +47,7 @@ class AdventureGame:
 
         # The ID of the game is based on the name, so it's consistent across sessions
         self.id = get_game_id(self.adventurer_name)
-
+        self.log = logging.getLogger('adventure')
         self.context = { "game_id": self.id, "adventurer": adventurer_name }
 
         self.start_time = int(time.time()*1000)
@@ -179,7 +179,7 @@ class AdventureGame:
     
     def enter_blacksmith(self):
         if self.has_box:
-            logging.info("As you enter the blacksmith you trip over a small stone slab. You feel lighter somehow.", extra=self.context)
+            self.log.info("As you enter the blacksmith you trip over a small stone slab. You feel lighter somehow.", extra=self.context)
 
     def is_blacksmith_alive(self):
         return not self.blacksmith_burned_down
@@ -189,8 +189,8 @@ class AdventureGame:
     
     def rebuild_blacksmith(self):
         if self.has_box:
-            logging.info("While rebuilding the blacksmith, amongst the ashes you find the burnt remains of the decorative box. Laying beside it is a glowing, unburnt, piece of parchment which reads: 'Congratulations, Adventurer!'. Below it is a long cryptic looking message.",extra=self.context)
-            logging.info("U2VuZCB0aGUgcGhyYXNlICJJIGZvdW5kIHRoZSBzZWNyZXQgd2l0aCBvYnNlcnZhYmlsaXR5ISIgdG8gVG9tIEdsZW5uIG9yIEpheSBDbGlmZm9yZCBhdCBodHRwczovL3NsYWNrLmdyYWZhbmEuY29tIGZvciB5b3VyIHJld2FyZC4=",extra=self.context)
+            self.log.info("While rebuilding the blacksmith, amongst the ashes you find the burnt remains of the decorative box. Laying beside it is a glowing, unburnt, piece of parchment which reads: 'Congratulations, Adventurer!'. Below it is a long cryptic looking message.",extra=self.context)
+            self.log.info("U2VuZCB0aGUgcGhyYXNlICJJIGZvdW5kIHRoZSBzZWNyZXQgd2l0aCBvYnNlcnZhYmlsaXR5ISIgdG8gVG9tIEdsZW5uIG9yIEpheSBDbGlmZm9yZCBhdCBodHRwczovL3NsYWNrLmdyYWZhbmEuY29tIGZvciB5b3VyIHJld2FyZC4=",extra=self.context)
         
         self.blacksmith_burned_down = False
         self.cool_forge()
@@ -212,10 +212,10 @@ class AdventureGame:
         if self.failed_sword_attempts > 0 and self.failed_sword_attempts < 3:
             self.sword_requested = True
             if self.is_heating_forge:
-                logging.warning("You requested another sword, but the forge is still hot!", extra=self.context)
+                self.log.warning("You requested another sword, but the forge is still hot!", extra=self.context)
             return "The blacksmith looks at you with disappointment. He says, 'Fine, but be more careful this time! If the forge gets too hot, the sword will melt.'"
         elif self.failed_sword_attempts >= 3:
-            logging.error("The blacksmith refuses to forge you another sword. You have wasted too much of his time.", extra=self.context)
+            self.log.error("The blacksmith refuses to forge you another sword. You have wasted too much of his time.", extra=self.context)
             return "The blacksmith refuses to forge you another sword. You have wasted too much of his time."
         
         self.sword_requested = True
@@ -244,18 +244,18 @@ class AdventureGame:
             self.current_location = "town"
             self.quest_accepted = False
             self.game_active = False  # End the game after successfully killing the wizard
-            logging.info(f"{self.adventurer_name} has successfully defeated the wizard.", extra=self.context)
+            self.log.info(f"{self.adventurer_name} has successfully defeated the wizard.", extra=self.context)
             return "You strike the wizard down with your holy sword. The town cheers for you. Your adventure has come to an end."
 
         if self.has_evil_sword:
             self.current_location = "town"
             self.game_active = False  # End the game if the attempt fails fatally
-            logging.critical("Your sword falters as you try to strike the wizard down. The wizard laughs as you fall to the ground.", extra=self.context)
+            self.log.critical("Your sword falters as you try to strike the wizard down. The wizard laughs as you fall to the ground.", extra=self.context)
             return "The wizard laughs as you strike him down. The sword was cursed. You have failed. The adventure ends here."
 
         if self.has_sword:
             self.current_location = "town"
-            logging.warning("Your sword is not powerful enough to defeat the wizard. Your sword shatters, you should probably get a new one.", extra=self.context)
+            self.log.warning("Your sword is not powerful enough to defeat the wizard. Your sword shatters, you should probably get a new one.", extra=self.context)
             self.has_sword = False
             return "You try to strike the wizard down but your sword is not powerful enough."
 
@@ -365,7 +365,7 @@ class AdventureGame:
 
     def here(self):
         output = f"{Colors.GREEN}{self.locations[self.current_location]['description']}{Colors.RESET}\n{self.list_actions()}"
-        logging.info(output, extra=self.context)
+        self.log.info(output, extra=self.context)
         return output
 
     def command(self, command):
@@ -379,7 +379,7 @@ class AdventureGame:
         ) as action_span:
             response = self.process_command(command)
             response_buf = response
-            logging.info(response, extra=self.context)
+            self.log.info(response, extra=self.context)
 
             # Check if the game has ended, and if so, break out of the loop
             if not self.game_active:

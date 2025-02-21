@@ -17,19 +17,20 @@ class Colors:
 
 class AdventureGame:
     def __init__(self):
+        service_name = "adventure"
         # Get the adventurer's name from the user
         self.adventurer_name = input("Enter your name, brave adventurer: ")
-        logFW = CustomLogFW(service_name='adventure')
+        logFW = CustomLogFW(service_name=service_name)
         handler = logFW.setup_logging()
         logging.getLogger().addHandler(handler)
         logging.getLogger().setLevel(logging.INFO)
 
-        metrics = CustomMetrics(service_name='adventure')
+        metrics = CustomMetrics(service_name=service_name)
         meter = metrics.get_meter()
 
         ct = CustomTracer()
         self.trace = ct.get_trace()
-        self.tracer = self.trace.get_tracer("adventure")
+        self.tracer = self.trace.get_tracer(service_name)
         
 
         # Create an observable gauge for the forge heat level.

@@ -1,15 +1,14 @@
 version: '3'
 services:
-  alloy:
-    image: grafana/alloy:latest
-    ports:
-      - 12345:12345
-      - 4318:4318
-      - 4317:4317
+  otel-collector:
+    image: otel/opentelemetry-collector:latest
     volumes:
-      - ./config.alloy:/etc/alloy/config.alloy
-      - ./logs:/tmp/app-logs/
-    command: run --server.http.listen-addr=0.0.0.0:12345 --stability.level=experimental  --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
+      - ./otel-config.yml:/etc/otel/config.yml
+    command:
+      - '--config=/etc/otel/config.yml'
+    ports:
+      - "4317:4317" #grpc
+      - "4318:4318" #http
     depends_on:
       - loki
     networks:

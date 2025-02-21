@@ -37,7 +37,7 @@ INTERVAL_SEC = 10
 
 
 class CustomTracer:
-    def __init__(self):
+    def __init__(self, service_name):
         # Set up TracerProvider only once globally
         if os.environ.get("SETUP") == "docker":
             exporter = OTLPSpanExporter(endpoint="http://alloy:4318/v1/traces")
@@ -49,7 +49,7 @@ class CustomTracer:
         tracer_provider = TracerProvider(
                 sampler=TraceIdRatioBased(1.0),
                 resource=Resource.create(
-                    {"service.name": "adventure-game", "service.instance.id": "instance-1"}
+                    {"service.name": service_name, "service.instance.id": "instance-1"}
                 )
             )
 

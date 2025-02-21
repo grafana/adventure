@@ -28,7 +28,7 @@ class AdventureGame:
         metrics = CustomMetrics(service_name=service_name)
         meter = metrics.get_meter()
 
-        ct = CustomTracer()
+        ct = CustomTracer(service_name=service_name)
         self.trace = ct.get_trace()
         self.tracer = self.trace.get_tracer(service_name)
         

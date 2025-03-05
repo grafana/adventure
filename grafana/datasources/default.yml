@@ -4,9 +4,11 @@ datasources:
   type: loki
   access: proxy
   url: http://loki:3100
+  editable: true
 - name: prometheus
   type: prometheus
   url: http://prometheus:9090
+  editable: true
   jsonData:
     prometheusType: Prometheus
     prometheusVersion: 2.50.0
@@ -15,6 +17,7 @@ datasources:
 - name: tempo
   type: tempo
   url: "http://tempo:3200"
+  editable: true
   jsonData:
     nodeGraph: 
       enabled: true

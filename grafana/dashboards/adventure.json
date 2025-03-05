@@ -1,6 +1,5 @@
 {
-  "__inputs": [
-  ],
+  "__inputs": [],
   "__elements": {},
   "__requires": [
     {
@@ -13,7 +12,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "11.3.0"
+      "version": "11.5.2"
     },
     {
       "type": "panel",
@@ -105,8 +104,8 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 12,
+        "h": 7,
+        "w": 9,
         "x": 0,
         "y": 0
       },
@@ -126,7 +125,7 @@
         "showThresholdMarkers": true,
         "sizing": "auto"
       },
-      "pluginVersion": "11.3.0",
+      "pluginVersion": "11.5.2",
       "targets": [
         {
           "datasource": {
@@ -218,9 +217,9 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
+        "h": 7,
+        "w": 15,
+        "x": 9,
         "y": 0
       },
       "id": 6,
@@ -232,11 +231,12 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
-      "pluginVersion": "11.3.0",
+      "pluginVersion": "11.5.2",
       "targets": [
         {
           "datasource": {
@@ -286,10 +286,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
+        "h": 6,
         "w": 3,
         "x": 0,
-        "y": 8
+        "y": 7
       },
       "id": 3,
       "options": {
@@ -309,7 +309,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "11.3.0",
+      "pluginVersion": "11.5.2",
       "targets": [
         {
           "datasource": {
@@ -359,10 +359,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
+        "h": 6,
         "w": 3,
         "x": 3,
-        "y": 8
+        "y": 7
       },
       "id": 4,
       "options": {
@@ -382,7 +382,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "11.3.0",
+      "pluginVersion": "11.5.2",
       "targets": [
         {
           "datasource": {
@@ -432,10 +432,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
+        "h": 6,
         "w": 3,
         "x": 6,
-        "y": 8
+        "y": 7
       },
       "id": 5,
       "options": {
@@ -455,7 +455,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "11.3.0",
+      "pluginVersion": "11.5.2",
       "targets": [
         {
           "datasource": {
@@ -478,6 +478,145 @@
     },
     {
       "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "dark-red",
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 17,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "stepBefore",
+            "lineWidth": 1,
+            "pointSize": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 15,
+        "x": 9,
+        "y": 7
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "disableTextWrap": false,
+          "editorMode": "builder",
+          "exemplar": true,
+          "expr": "evil_sword",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A",
+          "useBackend": false
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "disableTextWrap": false,
+          "editorMode": "builder",
+          "exemplar": true,
+          "expr": "holy_sword",
+          "fullMetaSearch": false,
+          "hide": false,
+          "includeNullMetadata": true,
+          "instant": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "B",
+          "useBackend": false
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "disableTextWrap": false,
+          "editorMode": "builder",
+          "exemplar": true,
+          "expr": "swords",
+          "fullMetaSearch": false,
+          "hide": false,
+          "includeNullMetadata": true,
+          "instant": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "C",
+          "useBackend": false
+        }
+      ],
+      "title": "Sword Timeline",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
         "type": "loki",
         "uid": "loki"
       },
@@ -485,11 +624,12 @@
         "h": 11,
         "w": 24,
         "x": 0,
-        "y": 12
+        "y": 13
       },
       "id": 7,
       "options": {
         "dedupStrategy": "none",
+        "enableInfiniteScrolling": false,
         "enableLogDetails": true,
         "prettifyLogMessage": false,
         "showCommonLabels": false,
@@ -498,17 +638,17 @@
         "sortOrder": "Descending",
         "wrapLogMessage": true
       },
-      "pluginVersion": "11.3.0",
+      "pluginVersion": "11.5.2",
       "targets": [
         {
-          "editorMode": "code",
-          "expr": "{service_name=\"adventure\"} != `failed` | label_format level=detected_level",
-          "queryType": "range",
-          "refId": "A",
           "datasource": {
             "type": "loki",
             "uid": "loki"
-          }
+          },
+          "editorMode": "code",
+          "expr": "{service_name=\"adventure\"} != `failed` | label_format level=detected_level",
+          "queryType": "range",
+          "refId": "A"
         }
       ],
       "title": "Quest Log",
@@ -528,7 +668,7 @@
   "timepicker": {},
   "timezone": "browser",
   "title": "Adventure Game Dashboard",
-  "uid": "be3ppfvvenqioa",
-  "version": 4,
+  "uid": "ceexdfjgzafi8d",
+  "version": 5,
   "weekStart": ""
 }

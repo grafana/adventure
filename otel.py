@@ -28,10 +28,11 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.sdk.trace.sampling import TraceIdRatioBased
-from opentelemetry.sdk.trace.export import ConsoleSpanExporter, SimpleSpanProcessor
+
+# Import exemplar-related classes from OpenTelemetry SDK
+from opentelemetry.sdk.metrics import TraceBasedExemplarFilter
 
 import os
-
 # Interval in seconds for exporting metrics periodically.
 INTERVAL_SEC = 10
 
@@ -75,10 +76,13 @@ class CustomMetrics:
             # Set up a PeriodicExportingMetricReader to export metrics at regular intervals.
             metric_reader = PeriodicExportingMetricReader(exporter, INTERVAL_SEC)
 
-            # Create a MeterProvider for managing metrics with an associated resource (service name and instance).
+            # Create a MeterProvider with a TraceBasedExemplarFilter to enable exemplars
+            # when measurements are taken in the context of a sampled span
             self.meter_provider = MeterProvider(
                 metric_readers=[metric_reader], 
-                resource=Resource.create({"service.name": service_name, "service.instance.id": "instance-1"})
+                resource=Resource.create({"service.name": service_name, "service.instance.id": "instance-1"}),
+                # Configure the TraceBasedExemplarFilter to add exemplars to metrics
+                exemplar_filter=TraceBasedExemplarFilter()
             )
 
             # Set the meter provider as the global meter provider.
@@ -88,7 +92,7 @@ class CustomMetrics:
             self.meter = metrics.get_meter(__name__)
 
             # Indicate successful metrics configuration.
-            print("Metrics configured with OpenTelemetry.")
+            print("Metrics configured with OpenTelemetry with exemplar support enabled.")
         except Exception as e:
             # Handle errors during metrics setup and set the meter to None for safety.
             self.meter = None
@@ -101,6 +105,7 @@ class CustomMetrics:
         if self.meter is None:
             raise RuntimeError("Meter is not configured. Please check for errors during initialization.")
         return self.meter
+
 
 class CustomLogFW:
     """

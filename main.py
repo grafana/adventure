@@ -27,37 +27,39 @@ class AdventureGame:
 
         metrics = CustomMetrics(service_name=service_name)
         meter = metrics.get_meter()
+        self.meter = meter  # Store meter as instance variable for later use
 
         ct = CustomTracer(service_name=service_name)
         self.trace = ct.get_trace()
         self.tracer = self.trace.get_tracer(service_name)
         
-
-        # Create an observable gauge for the forge heat level.
+        # Create an observable gauge for the forge heat level (keep this as gauge)
         self.forge_heat_gauge = meter.create_observable_gauge(
             name="forge_heat",
             description="The current heat level of the forge",
             callbacks=[self.observe_forge_heat]
         )
 
-        # Create an observable gauge for how many swords have been forged.
-        self.swords_gauge = meter.create_observable_gauge(
+        # Create up/down counters for sword states instead of observable gauges
+        self.sword_counter = meter.create_up_down_counter(
             name="swords",
-            description="The number of swords forged",
-            callbacks=[self.observe_swords]
+            description="The number of regular swords owned"
         )
-
-        self.holy_sword_gauge = meter.create_observable_gauge(
+        self.sword_counter.add(0)  # Initialize the sword counter to 0
+        
+        self.holy_sword_counter = meter.create_up_down_counter(
             name="holy_sword",
-            description="The number of holy swords",
-            callbacks=[self.observe_holy_swords]
+            description="The number of holy swords owned"
         )
 
-        self.evil_sword_gauge = meter.create_observable_gauge(
+        self.holy_sword_counter.add(0)  # Initialize the holy sword counter to 0
+        
+        self.evil_sword_counter = meter.create_up_down_counter(
             name="evil_sword",
-            description="The number of evil swords",
-            callbacks=[self.observe_evil_swords]
+            description="The number of evil swords owned"
         )
+
+        self.evil_sword_counter.add(0)  # Initialize the evil sword counter to 0
 
         self.game_active = True
         self.current_location = "start"
@@ -230,6 +232,7 @@ class AdventureGame:
             sword_count = 1
         elif self.has_evil_sword or self.has_holy_sword:
             sword_count = 0
+        # Standard observation - exemplars will be handled automatically by the SDK
         return [metrics.Observation(value=sword_count, attributes={})]
     
     def observe_holy_swords(self, observer):
@@ -238,6 +241,7 @@ class AdventureGame:
             sword_count = 1
         elif self.has_evil_sword or self.has_sword: 
             sword_count = 0
+        # Standard observation - exemplars will be handled automatically by the SDK
         return [metrics.Observation(value=sword_count, attributes={})]
     
     def observe_evil_swords(self, observer):
@@ -246,6 +250,7 @@ class AdventureGame:
             sword_count = 1
         elif self.has_holy_sword or self.has_sword:
             sword_count = 0
+        # Standard observation - exemplars will be handled automatically by the SDK
         return [metrics.Observation(value=sword_count, attributes={})]
 
     def cool_forge(self):
@@ -287,8 +292,7 @@ class AdventureGame:
 
     def cheat(self):
         self.has_sword = True
-        sword_count = 1
-        metrics.Observation(value=sword_count, attributes={})
+        self.sword_counter.add(1)  # Increment sword counter when cheating
         return "You should continue north you cheater."
     
     def kill_wizard(self):
@@ -317,12 +321,23 @@ class AdventureGame:
             return "I have already blessed your sword child, go now and use it well."
         
         if self.has_sword and not self.has_evil_sword:
+            # Update sword state and adjust counters
+            if self.has_sword:
+                self.sword_counter.add(-1)  # Decrement regular sword
+            
             self.has_holy_sword = True
+            self.holy_sword_counter.add(1)  # Increment holy sword
+            
             self.has_evil_sword = False
             self.has_sword = False
+            
             return "The priest blesses your sword. You feel a warm glow."
         
         if self.has_evil_sword:
+            # Update sword state and adjust counters
+            self.evil_sword_counter.add(-1)  # Decrement evil sword
+            self.holy_sword_counter.add(1)   # Increment holy sword
+            
             self.has_evil_sword = False
             self.has_holy_sword = True
             self.has_sword = False
@@ -338,7 +353,11 @@ class AdventureGame:
         current_span = trace.get_current_span()
         if self.heat >= 10 and self.heat <= 20:
             self.sword_requested = False
+            
+            # Update sword state and increment counter
             self.has_sword = True
+            self.sword_counter.add(1)  # Increment sword counter
+            
             current_span.add_event("Sword forged")
             return "The sword is ready. You take it from the blacksmith."
         elif self.heat >= 21:
@@ -352,11 +371,18 @@ class AdventureGame:
     
     # Evil wizard scenario
     def evil_wizard(self):
-        self.has_evil_sword = True
+        # Update sword state and adjust counters
+        if self.has_sword:
+            self.sword_counter.add(-1)       # Decrement regular sword
+        if self.has_holy_sword:
+            self.holy_sword_counter.add(-1)  # Decrement holy sword if had one
+        
+        self.evil_sword_counter.add(1)       # Increment evil sword counter
+        
+        self.has_evil_sword = True  
         self.has_sword = False
         self.has_holy_sword = False
 
-        # logging.warning("The evil wizard laughs; Ha! little does he know the sword is now cursed. He will never defeat me now!")
         logging.error("The evil wizard has enchanted your sword with dark magic. You feel a chill run down your spine. This is a warning...")
         return "You feel funny but powerful. Maybe I should accept a quest."
     

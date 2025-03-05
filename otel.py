@@ -41,7 +41,7 @@ class CustomTracer:
     def __init__(self, service_name):
         # Set up TracerProvider only once globally
         if os.environ.get("SETUP") == "docker":
-            exporter = OTLPSpanExporter(endpoint="http://alloy:4318/v1/traces")
+            exporter = OTLPSpanExporter(endpoint="http://otel-collector:4318/v1/traces")
         else:
             exporter = OTLPSpanExporter()
         span_processor = BatchSpanProcessor(span_exporter=exporter)
@@ -69,7 +69,7 @@ class CustomMetrics:
         try:
             # Create the metrics exporter to send data to the backend.
             if os.environ.get("SETUP") == "docker":
-                exporter = OTLPMetricExporter(endpoint="http://alloy:4318/v1/metrics")
+                exporter = OTLPMetricExporter(endpoint="http://otel-collector:4318/v1/metrics")
             else:
                 exporter = OTLPMetricExporter()
 
@@ -147,7 +147,7 @@ class CustomLogFW:
 
         # Create an instance of OTLPLogExporter to export logs.
         if os.environ.get("SETUP") == "docker":
-            exporter = OTLPLogExporter(endpoint="http://alloy:4318/v1/logs")
+            exporter = OTLPLogExporter(endpoint="http://otel-collector:4318/v1/logs")
             print(exporter._endpoint, flush=True)
         else:
             exporter = OTLPLogExporter()

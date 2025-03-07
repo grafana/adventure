@@ -489,6 +489,13 @@ class AdventureGame:
         new_name = input("Enter your name if you'd like to change it, or press Enter to keep the same name: ").strip()
         if new_name:
             self.adventurer_name = new_name
+        
+        if self.has_sword:
+            self.sword_counter.add(-1)
+        if self.has_holy_sword:
+            self.holy_sword_counter.add(-1)
+        if self.has_evil_sword:
+            self.evil_sword_counter.add(-1)
 
         # Reset all game state variables
         self.game_active = True

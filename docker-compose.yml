@@ -14,7 +14,7 @@ services:
     networks:
       - adventure
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v3.1.0
     ports:
       - 9090:9090
     volumes:
@@ -32,7 +32,7 @@ services:
     networks:
       - adventure
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:11.5.2
     environment:
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_ANONYMOUS_ENABLED=true
@@ -49,7 +49,7 @@ services:
   # Tempo runs as user 10001, and docker compose creates the volume as root.
   # As such, we need to chown the volume in order for Tempo to start correctly.
   init:
-    image: &tempoImage grafana/tempo:latest
+    image: &tempoImage grafana/tempo:2.7.1
     user: root
     entrypoint:
       - "chown"

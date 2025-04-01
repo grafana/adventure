@@ -18,7 +18,113 @@ killercoda:
 
 
 <!-- INTERACTIVE page intro.md START -->
-# Quest World
+# Adventure Quest - Serverless Edition
+
+A text-based adventure game built using AWS Lambda and API Gateway. The game maintains its text-based interface while leveraging serverless architecture for game logic and state management.
+
+## Architecture
+
+The game is split into several components:
+
+1. CLI Client (`adventure_client.py`)
+   - Handles user interaction
+   - Maintains local game state
+   - Communicates with backend services via API Gateway
+
+2. Lambda Functions
+   - `blacksmith` - Handles sword crafting mechanics
+   - `mysterious-man` - Handles evil wizard encounters (TODO)
+   - `quest-giver` - Handles quest progression (TODO)
+   - `chapel` - Handles holy sword mechanics (TODO)
+
+3. Shared Components
+   - `models.py` - Shared data models using Pydantic
+   - OpenTelemetry integration for observability
+
+## Project Structure
+
+```
+.
+├── README.md
+├── requirements.txt
+├── adventure_client.py
+└── lambda/
+    ├── shared/
+    │   └── models.py
+    ├── blacksmith/
+    │   └── app.py
+    ├── mysterious_man/
+    ├── quest_giver/
+    └── chapel/
+```
+
+## Prerequisites
+
+- Python 3.8+
+- AWS CLI configured with appropriate credentials
+- AWS SAM CLI (for local testing)
+
+## Setup
+
+1. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+2. Set up environment variables:
+```bash
+export API_URL=<your-api-gateway-url>
+```
+
+## Local Development
+
+1. Run the SAM local API:
+```bash
+sam local start-api
+```
+
+2. In a separate terminal, run the client:
+```bash
+python adventure_client.py
+```
+
+## Deployment
+
+1. Package the Lambda functions:
+```bash
+sam build
+```
+
+2. Deploy to AWS:
+```bash
+sam deploy --guided
+```
+
+## Observability
+
+The game integrates with OpenTelemetry to provide:
+- Metrics for game actions and states
+- Tracing for request flows
+- Logging for game events
+
+Metrics, traces, and logs are sent to Grafana Cloud for visualization and monitoring.
+
+## Game Flow
+
+1. Start the game by running the client
+2. Enter your adventurer name
+3. Navigate through the world using text commands or numbered options
+4. Visit the blacksmith to forge a sword
+5. Enhance your sword through various encounters
+6. Complete quests and defeat the evil wizard
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
 <!-- INTERACTIVE ignore START -->
 

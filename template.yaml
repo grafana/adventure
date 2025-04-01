@@ -1,0 +1,167 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Description: Adventure Quest Serverless Application
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 128
+    Runtime: python3.9
+    Environment:
+      Variables:
+        POWERTOOLS_SERVICE_NAME: adventure-quest
+        LOG_LEVEL: INFO
+        GAME_STATE_TABLE: !Ref GameStateTable
+
+Resources:
+  GameStateTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: adventure-quest-state
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: adventurer_name
+          AttributeType: S
+      KeySchema:
+        - AttributeName: adventurer_name
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  GameStateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: game_lambda/game_state/
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref DependenciesLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref GameStateTable
+      Environment:
+        Variables:
+          POWERTOOLS_METRICS_NAMESPACE: AdventureQuest
+      Events:
+        GetGameState:
+          Type: Api
+          Properties:
+            Path: /game-state/{adventurer_name}
+            Method: get
+        SaveGameState:
+          Type: Api
+          Properties:
+            Path: /game-state
+            Method: post
+        DeleteGameState:
+          Type: Api
+          Properties:
+            Path: /game-state/{adventurer_name}
+            Method: delete
+
+  BlacksmithFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: game_lambda/blacksmith/
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref DependenciesLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref GameStateTable
+      Environment:
+        Variables:
+          POWERTOOLS_METRICS_NAMESPACE: AdventureQuest
+      Events:
+        BlacksmithApi:
+          Type: Api
+          Properties:
+            Path: /blacksmith
+            Method: post
+
+  MysteriousManFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: game_lambda/mysterious_man/
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref DependenciesLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref GameStateTable
+      Environment:
+        Variables:
+          POWERTOOLS_METRICS_NAMESPACE: AdventureQuest
+      Events:
+        MysteriousManApi:
+          Type: Api
+          Properties:
+            Path: /mysterious-man
+            Method: post
+
+  ChapelFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: game_lambda/chapel/
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref DependenciesLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref GameStateTable
+      Environment:
+        Variables:
+          POWERTOOLS_METRICS_NAMESPACE: AdventureQuest
+      Events:
+        ChapelApi:
+          Type: Api
+          Properties:
+            Path: /chapel
+            Method: post
+
+  QuestGiverFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: game_lambda/quest_giver/
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref DependenciesLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref GameStateTable
+      Environment:
+        Variables:
+          POWERTOOLS_METRICS_NAMESPACE: AdventureQuest
+      Events:
+        QuestGiverApi:
+          Type: Api
+          Properties:
+            Path: /quest-giver
+            Method: post
+
+  ApiGatewayApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      Cors:
+        AllowMethods: "'POST, GET, OPTIONS, DELETE'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+        AllowOrigin: "'*'"
+
+  DependenciesLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: adventure-quest-dependencies
+      Description: Dependencies for Adventure Quest lambda functions
+      ContentUri: layers/
+      CompatibleRuntimes:
+        - python3.9
+
+Outputs:
+  WebEndpoint:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/prod/"
+  GameStateTableName:
+    Description: "DynamoDB table for game state"
+    Value: !Ref GameStateTable 

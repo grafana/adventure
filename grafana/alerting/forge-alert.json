@@ -1,0 +1,146 @@
+{
+    "apiVersion": 1,
+    "groups": [
+        {
+            "orgId": 1,
+            "name": "Adventure Alerts",
+            "folder": "Adventure Game",
+            "interval": "10s",
+            "rules": [
+                {
+                    "uid": "cefsf1vihqgowf",
+                    "title": "Forge Heat",
+                    "condition": "C",
+                    "data": [
+                        {
+                            "refId": "A",
+                            "relativeTimeRange": {
+                                "from": 300,
+                                "to": 0
+                            },
+                            "datasourceUid": "P1809F7CD0C75ACF3",
+                            "model": {
+                                "datasource": {
+                                    "type": "prometheus",
+                                    "uid": "P1809F7CD0C75ACF3"
+                                },
+                                "disableTextWrap": false,
+                                "editorMode": "builder",
+                                "expr": "forge_heat{location=\"blacksmith\"}",
+                                "fullMetaSearch": false,
+                                "includeNullMetadata": true,
+                                "instant": false,
+                                "interval": "",
+                                "intervalMs": 3000,
+                                "legendFormat": "__auto",
+                                "maxDataPoints": 43200,
+                                "range": true,
+                                "refId": "A",
+                                "useBackend": false
+                            }
+                        },
+                        {
+                            "refId": "B",
+                            "relativeTimeRange": {
+                                "from": 0,
+                                "to": 0
+                            },
+                            "datasourceUid": "__expr__",
+                            "model": {
+                                "conditions": [
+                                    {
+                                        "evaluator": {
+                                            "params": [],
+                                            "type": "gt"
+                                        },
+                                        "operator": {
+                                            "type": "and"
+                                        },
+                                        "query": {
+                                            "params": [
+                                                "B"
+                                            ]
+                                        },
+                                        "reducer": {
+                                            "params": [],
+                                            "type": "last"
+                                        },
+                                        "type": "query"
+                                    }
+                                ],
+                                "datasource": {
+                                    "type": "__expr__",
+                                    "uid": "__expr__"
+                                },
+                                "expression": "A",
+                                "intervalMs": 1000,
+                                "maxDataPoints": 43200,
+                                "reducer": "last",
+                                "refId": "B",
+                                "type": "reduce"
+                            }
+                        },
+                        {
+                            "refId": "C",
+                            "relativeTimeRange": {
+                                "from": 0,
+                                "to": 0
+                            },
+                            "datasourceUid": "__expr__",
+                            "model": {
+                                "conditions": [
+                                    {
+                                        "evaluator": {
+                                            "params": [
+                                                49
+                                            ],
+                                            "type": "gt"
+                                        },
+                                        "operator": {
+                                            "type": "and"
+                                        },
+                                        "query": {
+                                            "params": [
+                                                "C"
+                                            ]
+                                        },
+                                        "reducer": {
+                                            "params": [],
+                                            "type": "last"
+                                        },
+                                        "type": "query"
+                                    }
+                                ],
+                                "datasource": {
+                                    "type": "__expr__",
+                                    "uid": "__expr__"
+                                },
+                                "expression": "B",
+                                "intervalMs": 1000,
+                                "maxDataPoints": 43200,
+                                "refId": "C",
+                                "type": "threshold"
+                            }
+                        }
+                    ],
+                    "dashboardUid": "ceexdfjgzafi8d",
+                    "panelId": 6,
+                    "noDataState": "NoData",
+                    "execErrState": "Error",
+                    "for": "0s",
+                    "annotations": {
+                        "__dashboardUid__": "ceexdfjgzafi8d",
+                        "__panelId__": "6",
+                        "description": "Checks to see if the blacksmith forge has burned down.",
+                        "summary": "The blacksmith forge has burned down!!"
+                    },
+                    "labels": {},
+                    "isPaused": false,
+                    "notification_settings": {
+                        "receiver": "grafana-default-email"
+                    }
+                }
+            ]
+        }
+    ]
+}

@@ -74,6 +74,7 @@ class AdventureGame:
         self.quest_accepted = False # Track if the quest has been accepted
         self.priest_alive = True
         self.has_box = False
+        self.current_actions = []  # Add this line to store current available actions
 
         self.start_heat_forge_thread()
 
@@ -163,7 +164,7 @@ class AdventureGame:
             "quest": {
                 "description": "You meet a quest giver. He offers you a quest to defeat the evil wizard.",
                 "actions": {
-                    "accept quest": {"message": "You tell the quest give you would like to accept...", "effect": self.quest_giver},
+                    "accept quest": {"message": "You tell the quest giver you would like to accept...", "effect": self.quest_giver},
                     "go to town": {"next_location": "town"}
                 }
             },
@@ -406,14 +407,22 @@ class AdventureGame:
             return "You don't have a sword. The quest giver looks at you with disappointment."
 
     def list_actions(self):
-        actions = self.locations[self.current_location].get("actions", {}).keys()
-        return f"Available actions: {Colors.MAGENTA}{f"{Colors.RESET}, {Colors.MAGENTA}".join(actions)}{Colors.RESET}, {Colors.MAGENTA}look around{Colors.RESET}"
+        actions = list(self.locations[self.current_location].get("actions", {}).keys())
+        actions.append("look around")  # Add the universal 'look around' command
+        
+        # Store the numbered actions for reference in process_command
+        self.current_actions = actions
+        
+        # Create numbered action list
+        numbered_actions = [f"{Colors.MAGENTA}{i+1}. {action}{Colors.RESET}" for i, action in enumerate(actions)]
+        return f"Available actions: {', '.join(numbered_actions)}"
 
     def process_command(self, command):
         if command.lower() in ["quit", "exit"]:
             self.game_active = False
             return "You have ended your adventure."
-        elif command.lower() in ['look around', 'here']:
+        
+        if command.lower() in ['look around', 'here']:
             return self.here()
         elif command.lower() == "list actions":
             return self.list_actions()
@@ -454,7 +463,18 @@ class AdventureGame:
         print(f"{Colors.GREEN}{self.here()}{Colors.RESET}")
         with self.tracer.start_as_current_span(self.adventurer_name, attributes={"adventurer": self.adventurer_name}) as journey_span:
             while self.game_active:
-                command = input("> ")
+                playerInput = input("> ")
+
+                # Try to resolve the command if it's a number
+                try:
+                    action_index = int(playerInput) - 1
+                    if 0 <= action_index < len(self.current_actions):
+                        command = self.current_actions[action_index]
+                    else:
+                        command = playerInput
+                except ValueError:
+                    command = playerInput
+
                 logging.info(f"Action by {self.adventurer_name}: " + command)
 
                 # Create a span for each action taken by the player, with location attribute added
@@ -497,6 +517,7 @@ class AdventureGame:
         if self.has_evil_sword:
             self.evil_sword_counter.add(-1)
 
+
         # Reset all game state variables
         self.game_active = True
         self.current_location = "start"
@@ -521,5 +542,3 @@ class AdventureGame:
 if __name__ == "__main__":
     game = AdventureGame()
     game.play()
-
-

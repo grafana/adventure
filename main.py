@@ -452,7 +452,6 @@ class AdventureGame:
 
     def here(self):
         output = f"{Colors.GREEN}{self.locations[self.current_location]['description']}{Colors.RESET}\n{self.list_actions()}"
-        logging.info(output)
         return output
 
     def play(self):

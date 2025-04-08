@@ -3,16 +3,28 @@ Transform: AWS::Serverless-2016-10-31
 
 Description: Adventure Quest Serverless Application
 
+Parameters:
+  GrafanaCloudTokenSecretArn:
+    Type: String
+    Default: arn:aws:secretsmanager:eu-central-1:182399686258:secret:adventurequest/grafana/otlp-ydVjUK
+
 Globals:
   Function:
-    Timeout: 30
+    Timeout: 15
     MemorySize: 128
-    Runtime: python3.9
+    Runtime: python3.12
     Environment:
       Variables:
         POWERTOOLS_SERVICE_NAME: adventure-quest
         LOG_LEVEL: INFO
         GAME_STATE_TABLE: !Ref GameStateTable
+        POWERTOOLS_METRICS_NAMESPACE: AdventureQuest
+        OTEL_PROPAGATORS: xray
+        OPENTELEMETRY_COLLECTOR_CONFIG_URI: /var/task/collector.yaml
+        GRAFANA_CLOUD_INSTANCE_ID: 1222010
+        GRAFANA_CLOUD_OTLP_ENDPOINT: https://otlp-gateway-prod-eu-west-2.grafana.net/otlp
+        GRAFANA_CLOUD_API_KEY_ARN: !Ref GrafanaCloudTokenSecretArn
+
 
 Resources:
   GameStateTable:
@@ -35,14 +47,26 @@ Resources:
     Properties:
       CodeUri: game_lambda/game_state/
       Handler: app.lambda_handler
+      Tracing: Active
+      SnapStart:
+        ApplyOn: PublishedVersions
       Layers:
-        - !Ref DependenciesLayer
+        - !FindInMap [RegionMap, !Ref "AWS::Region", layer]
+      Environment:
+        Variables:
+          GAME_STATE_TABLE: !Ref GameStateTable
+          OTEL_PROPAGATORS: xray
+          OPENTELEMETRY_COLLECTOR_CONFIG_URI: /var/task/collector.yaml
+          GRAFANA_CLOUD_INSTANCE_ID: 1222010
+          GRAFANA_CLOUD_OTLP_ENDPOINT: https://otlp-gateway-prod-eu-west-2.grafana.net/otlp
+          GRAFANA_CLOUD_API_KEY_ARN: !Ref GrafanaCloudTokenSecretArn
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref GameStateTable
-      Environment:
-        Variables:
-          POWERTOOLS_METRICS_NAMESPACE: AdventureQuest
+        - Statement:
+            - Effect: Allow
+              Action: secretsmanager:GetSecretValue
+              Resource: !Ref GrafanaCloudTokenSecretArn
       Events:
         GetGameState:
           Type: Api
@@ -59,20 +83,38 @@ Resources:
           Properties:
             Path: /game-state/{adventurer_name}
             Method: delete
+        InternalGameState:
+          Type: Api
+          Properties:
+            Path: /game-state/internal
+            Method: post
 
   BlacksmithFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: game_lambda/blacksmith/
       Handler: app.lambda_handler
+      Tracing: Active
+      SnapStart:
+        ApplyOn: PublishedVersions
       Layers:
-        - !Ref DependenciesLayer
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref GameStateTable
+        - !FindInMap [RegionMap, !Ref "AWS::Region", layer]
       Environment:
         Variables:
-          POWERTOOLS_METRICS_NAMESPACE: AdventureQuest
+          GAME_STATE_FUNCTION_NAME: !Ref GameStateFunction
+          OTEL_PROPAGATORS: xray
+          OPENTELEMETRY_COLLECTOR_CONFIG_URI: /var/task/collector.yaml
+          GRAFANA_CLOUD_INSTANCE_ID: 1222010
+          GRAFANA_CLOUD_OTLP_ENDPOINT: https://otlp-gateway-prod-eu-west-2.grafana.net/otlp
+          GRAFANA_CLOUD_API_KEY_ARN: !Ref GrafanaCloudTokenSecretArn
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: secretsmanager:GetSecretValue
+              Resource: !Ref GrafanaCloudTokenSecretArn
+            - Effect: Allow
+              Action: lambda:InvokeFunction
+              Resource: !GetAtt GameStateFunction.Arn
       Events:
         BlacksmithApi:
           Type: Api
@@ -85,14 +127,27 @@ Resources:
     Properties:
       CodeUri: game_lambda/mysterious_man/
       Handler: app.lambda_handler
+      Tracing: Active
+      SnapStart:
+        ApplyOn: PublishedVersions
       Layers:
-        - !Ref DependenciesLayer
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref GameStateTable
+        - !FindInMap [RegionMap, !Ref "AWS::Region", layer]
       Environment:
         Variables:
-          POWERTOOLS_METRICS_NAMESPACE: AdventureQuest
+          GAME_STATE_FUNCTION_NAME: !Ref GameStateFunction
+          OTEL_PROPAGATORS: xray
+          OPENTELEMETRY_COLLECTOR_CONFIG_URI: /var/task/collector.yaml
+          GRAFANA_CLOUD_INSTANCE_ID: 1222010
+          GRAFANA_CLOUD_OTLP_ENDPOINT: https://otlp-gateway-prod-eu-west-2.grafana.net/otlp
+          GRAFANA_CLOUD_API_KEY_ARN: !Ref GrafanaCloudTokenSecretArn
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: secretsmanager:GetSecretValue
+              Resource: !Ref GrafanaCloudTokenSecretArn
+            - Effect: Allow
+              Action: lambda:InvokeFunction
+              Resource: !GetAtt GameStateFunction.Arn
       Events:
         MysteriousManApi:
           Type: Api
@@ -105,14 +160,27 @@ Resources:
     Properties:
       CodeUri: game_lambda/chapel/
       Handler: app.lambda_handler
+      Tracing: Active
+      SnapStart:
+        ApplyOn: PublishedVersions
       Layers:
-        - !Ref DependenciesLayer
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref GameStateTable
+        - !FindInMap [RegionMap, !Ref "AWS::Region", layer]
       Environment:
         Variables:
-          POWERTOOLS_METRICS_NAMESPACE: AdventureQuest
+          GAME_STATE_FUNCTION_NAME: !Ref GameStateFunction
+          OTEL_PROPAGATORS: xray
+          OPENTELEMETRY_COLLECTOR_CONFIG_URI: /var/task/collector.yaml
+          GRAFANA_CLOUD_INSTANCE_ID: 1222010
+          GRAFANA_CLOUD_OTLP_ENDPOINT: https://otlp-gateway-prod-eu-west-2.grafana.net/otlp
+          GRAFANA_CLOUD_API_KEY_ARN: !Ref GrafanaCloudTokenSecretArn
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: secretsmanager:GetSecretValue
+              Resource: !Ref GrafanaCloudTokenSecretArn
+            - Effect: Allow
+              Action: lambda:InvokeFunction
+              Resource: !GetAtt GameStateFunction.Arn
       Events:
         ChapelApi:
           Type: Api
@@ -125,14 +193,27 @@ Resources:
     Properties:
       CodeUri: game_lambda/quest_giver/
       Handler: app.lambda_handler
+      Tracing: Active
+      SnapStart:
+        ApplyOn: PublishedVersions
       Layers:
-        - !Ref DependenciesLayer
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref GameStateTable
+        - !FindInMap [RegionMap, !Ref "AWS::Region", layer]
       Environment:
         Variables:
-          POWERTOOLS_METRICS_NAMESPACE: AdventureQuest
+          GAME_STATE_FUNCTION_NAME: !Ref GameStateFunction
+          OTEL_PROPAGATORS: xray
+          OPENTELEMETRY_COLLECTOR_CONFIG_URI: /var/task/collector.yaml
+          GRAFANA_CLOUD_INSTANCE_ID: 1222010
+          GRAFANA_CLOUD_OTLP_ENDPOINT: https://otlp-gateway-prod-eu-west-2.grafana.net/otlp
+          GRAFANA_CLOUD_API_KEY_ARN: !Ref GrafanaCloudTokenSecretArn
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: secretsmanager:GetSecretValue
+              Resource: !Ref GrafanaCloudTokenSecretArn
+            - Effect: Allow
+              Action: lambda:InvokeFunction
+              Resource: !GetAtt GameStateFunction.Arn
       Events:
         QuestGiverApi:
           Type: Api
@@ -140,28 +221,80 @@ Resources:
             Path: /quest-giver
             Method: post
 
-  ApiGatewayApi:
-    Type: AWS::Serverless::Api
+  WizardFunction:
+    Type: AWS::Serverless::Function
     Properties:
-      StageName: prod
-      Cors:
-        AllowMethods: "'POST, GET, OPTIONS, DELETE'"
-        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
-        AllowOrigin: "'*'"
+      CodeUri: game_lambda/wizard/
+      Handler: app.lambda_handler
+      Tracing: Active
+      SnapStart:
+        ApplyOn: PublishedVersions
+      Layers:
+        - !FindInMap [RegionMap, !Ref "AWS::Region", layer]
+      Environment:
+        Variables:
+          GAME_STATE_FUNCTION_NAME: !Ref GameStateFunction
+          OTEL_PROPAGATORS: xray
+          OPENTELEMETRY_COLLECTOR_CONFIG_URI: /var/task/collector.yaml
+          GRAFANA_CLOUD_INSTANCE_ID: 1222010
+          GRAFANA_CLOUD_OTLP_ENDPOINT: https://otlp-gateway-prod-eu-west-2.grafana.net/otlp
+          GRAFANA_CLOUD_API_KEY_ARN: !Ref GrafanaCloudTokenSecretArn
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: secretsmanager:GetSecretValue
+              Resource: !Ref GrafanaCloudTokenSecretArn
+            - Effect: Allow
+              Action: lambda:InvokeFunction
+              Resource: !GetAtt GameStateFunction.Arn
+      Events:
+        WizardApi:
+          Type: Api
+          Properties:
+            Path: /wizard
+            Method: post
 
-  DependenciesLayer:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      LayerName: adventure-quest-dependencies
-      Description: Dependencies for Adventure Quest lambda functions
-      ContentUri: layers/
-      CompatibleRuntimes:
-        - python3.9
 
 Outputs:
   WebEndpoint:
     Description: "API Gateway endpoint URL"
-    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/prod/"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
   GameStateTableName:
     Description: "DynamoDB table for game state"
-    Value: !Ref GameStateTable 
+    Value: !Ref GameStateTable
+
+
+Mappings:
+  RegionMap:
+    ap-northeast-1:
+      layer: "arn:aws:lambda:ap-northeast-1:050451360540:layer:opentelemetry-collector-grafana-amd64-v0_113_0:1"
+    ap-northeast-2:
+      layer: "arn:aws:lambda:ap-northeast-2:050451360540:layer:opentelemetry-collector-grafana-amd64-v0_113_0:1"
+    ap-south-1:
+      layer: "arn:aws:lambda:ap-south-1:050451360540:layer:opentelemetry-collector-grafana-amd64-v0_113_0:1"
+    ap-southeast-1:
+      layer: "arn:aws:lambda:ap-southeast-1:050451360540:layer:opentelemetry-collector-grafana-amd64-v0_113_0:1"
+    ap-southeast-2:
+      layer: "arn:aws:lambda:ap-southeast-2:050451360540:layer:opentelemetry-collector-grafana-amd64-v0_113_0:1"
+    ca-central-1:
+      layer: "arn:aws:lambda:ca-central-1:050451360540:layer:opentelemetry-collector-grafana-amd64-v0_113_0:1"
+    eu-central-1:
+      layer: "arn:aws:lambda:eu-central-1:050451360540:layer:opentelemetry-collector-grafana-amd64-v0_113_0:1"
+    eu-north-1:
+      layer: "arn:aws:lambda:eu-north-1:050451360540:layer:opentelemetry-collector-grafana-amd64-v0_113_0:1"
+    eu-west-1:
+      layer: "arn:aws:lambda:eu-west-1:050451360540:layer:opentelemetry-collector-grafana-amd64-v0_113_0:1"
+    eu-west-2:
+      layer: "arn:aws:lambda:eu-west-2:050451360540:layer:opentelemetry-collector-grafana-amd64-v0_113_0:1"
+    eu-west-3:
+      layer: "arn:aws:lambda:eu-west-3:050451360540:layer:opentelemetry-collector-grafana-amd64-v0_113_0:1"
+    sa-east-1:
+      layer: "arn:aws:lambda:sa-east-1:050451360540:layer:opentelemetry-collector-grafana-amd64-v0_113_0:1"
+    us-east-1:
+      layer: "arn:aws:lambda:us-east-1:050451360540:layer:opentelemetry-collector-grafana-amd64-v0_113_0:1"
+    us-east-2:
+      layer: "arn:aws:lambda:us-east-2:050451360540:layer:opentelemetry-collector-grafana-amd64-v0_113_0:1"
+    us-west-1:
+      layer: "arn:aws:lambda:us-west-1:050451360540:layer:opentelemetry-collector-grafana-amd64-v0_113_0:9"
+    us-west-2:
+      layer: "arn:aws:lambda:us-west-2:050451360540:layer:opentelemetry-collector-grafana-amd64-v0_113_0:10"

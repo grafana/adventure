@@ -1,2 +1,7 @@
-aws-lambda-powertools>=2.30.0
-pydantic>=2.0.0 
+aws-lambda-powertools[tracer]
+pydantic>=2.0.0
+requests>=2.25.1
+boto3>=1.18.0
+opentelemetry-api==1.30.0
+opentelemetry-exporter-otlp==1.30.0
+opentelemetry-sdk==1.30.0

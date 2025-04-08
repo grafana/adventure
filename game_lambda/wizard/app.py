@@ -9,81 +9,11 @@ from aws_lambda_powertools import Logger, Metrics, Tracer
 from aws_lambda_powertools.event_handler import APIGatewayRestResolver
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from aws_lambda_powertools.logging import correlation_paths
-from opentelemetry._logs import set_logger_provider
-from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
-from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
-from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
-from opentelemetry.sdk.resources import Resource
-import logging
-
-service_name = "mysterious_man"
-
-class CustomLogFW:
-    """
-    CustomLogFW sets up logging using OpenTelemetry with a specified service name and instance ID.
-    """
-    def __init__(self, service_name):
-        try:
-            # Create an instance of LoggerProvider with a Resource object.
-            # Resource is used to include metadata like the service name and instance ID.
-            self.logger_provider = LoggerProvider(
-                resource=Resource.create(
-                    {
-                        "service.name": service_name,
-                        "service.instance.id": "game-play"
-                    }
-                )
-            )
-            # Flag indicating that the logger provider is properly configured.
-            self.logger_configured = True
-        except Exception as e:
-            # In case of error, set the logger provider to None and set the configured flag to False.
-            self.logger_provider = None
-            self.logger_configured = False
-            print(f"Error configuring logging: {e}")
-
-    def setup_logging(self):
-        """
-        Set up the logging configuration for OpenTelemetry.
-
-        :return: A LoggingHandler instance configured with the logger provider.
-        :raises: RuntimeError if the logger provider is not configured properly.
-        """
-        if not self.logger_configured:
-            # If the logger provider wasn't set up correctly, raise an error.
-            raise RuntimeError("LoggerProvider not configured correctly. Cannot set up logging.")
-
-        # Set the created LoggerProvider as the global logger provider.
-        set_logger_provider(self.logger_provider)
-
-        exporter = OTLPLogExporter()
-
-        # Add a BatchLogRecordProcessor to the logger provider.
-        # This processor batches logs before sending them to the backend.
-        self.logger_provider.add_log_record_processor(
-            BatchLogRecordProcessor(exporter=exporter, max_queue_size=5, max_export_batch_size=1)
-        )
-
-        # Create a LoggingHandler that integrates OpenTelemetry logging with the Python logging system.
-        # Setting log level to NOTSET to capture all log levels.
-        handler = LoggingHandler(level=logging.NOTSET, logger_provider=self.logger_provider)
-
-        # Indicate successful logging configuration.
-        print("Logging configured with OpenTelemetry.")
-
-        return handler
-
-logFW = CustomLogFW(service_name=service_name)
-handler = logFW.setup_logging()
-
-# Get the logger and add the handler
-gamelogs = logging.getLogger("game-play")
-gamelogs.addHandler(handler)
-gamelogs.setLevel(logging.INFO)
 
 # Initialize AWS Lambda Powertools
 logger = Logger()
 tracer = Tracer()
+metrics = Metrics()
 app = APIGatewayRestResolver()
 
 # Model definitions
@@ -110,12 +40,13 @@ class BlacksmithState(BaseModel):
     is_heating_forge: bool = False
     sword_requested: bool = False
 
-class MysteriousManAction(str, Enum):
-    ACCEPT_OFFER = "accept_offer"
-    DECLINE_OFFER = "decline_offer"
+class WizardAction(str, Enum):
+    KILL_WIZARD = "kill_wizard"
+    TALK_TO_WIZARD = "talk_to_wizard"
+    CHEAT = "cheat"
 
-class MysteriousManRequest(BaseModel):
-    action: MysteriousManAction
+class WizardRequest(BaseModel):
+    action: WizardAction
     game_state: GameState
 
 class ActionResponse(BaseModel):
@@ -123,6 +54,7 @@ class ActionResponse(BaseModel):
     game_state: GameState
     blacksmith_state: Optional[BlacksmithState] = None
     success: bool = True
+    game_over: bool = False
 
 class GameStateAction(str, Enum):
     GET = "get"
@@ -177,7 +109,7 @@ def get_game_state(adventurer_name: str) -> GameStateResponse:
         payload = json.dumps({
             "action": "get",
             "adventurer_name": adventurer_name,
-            "source_function": "mysterious_man"
+            "source_function": "wizard"
         })
         
         response = client.invoke(
@@ -263,7 +195,7 @@ def save_game_state(game_state: GameState, blacksmith_state: Optional[Blacksmith
             "adventurer_name": game_state.adventurer_name,
             "game_state": game_state.model_dump() if game_state else None,
             "blacksmith_state": blacksmith_state.model_dump() if blacksmith_state else None,
-            "source_function": "mysterious_man"
+            "source_function": "wizard"
         })
         
         response = client.invoke(
@@ -310,70 +242,181 @@ def save_game_state(game_state: GameState, blacksmith_state: Optional[Blacksmith
             message=f"Error saving game state: {str(e)}"
         )
 
-@app.post("/mysterious-man")
-def handle_mysterious_man_action():
-    """Handle mysterious man actions"""
+def cheat_get_sword(adventurer_name: str) -> GameStateResponse:
+    """Cheat to get a sword instantly"""
+    try:
+        # Check if we're running locally with SAM
+        is_local = os.environ.get('AWS_SAM_LOCAL') == 'true'
+        
+        if is_local:
+            # For local SAM testing, use localhost URL
+            logger.info("Running in SAM Local mode, using localhost URL")
+            local_url = "http://localhost:3000"
+            request = GameStateRequest(
+                action=GameStateAction.SAVE,  # Use save as proxy for cheat
+                adventurer_name=adventurer_name
+            )
+            
+            response = requests.post(
+                f"{local_url}/game-state/internal",
+                json={"action": "cheat", "adventurer_name": adventurer_name}
+            )
+            
+            if response.status_code == 200:
+                return GameStateResponse(**response.json())
+            else:
+                logger.error(f"Failed to apply cheat: {response.status_code} - {response.text}")
+                return GameStateResponse(
+                    success=False,
+                    message=f"Failed to apply cheat: {response.status_code}"
+                )
+        
+        # For production, always use direct Lambda invocation
+        logger.info("Using direct Lambda invocation")
+        client = boto3.client('lambda')
+        payload = json.dumps({
+            "action": "cheat",
+            "adventurer_name": adventurer_name,
+            "source_function": "wizard"
+        })
+        
+        response = client.invoke(
+            FunctionName=os.environ.get('GAME_STATE_FUNCTION_NAME', 'GameStateFunction'),
+            InvocationType='RequestResponse',
+            Payload=payload
+        )
+        
+        # Check for successful invocation
+        if response.get('StatusCode') != 200:
+            logger.error(f"Lambda invocation failed with status: {response.get('StatusCode')}")
+            return GameStateResponse(
+                success=False,
+                message=f"Lambda invocation failed with status: {response.get('StatusCode')}"
+            )
+            
+        payload_str = response['Payload'].read().decode('utf-8')
+        logger.info(f"Received payload: {payload_str}")
+        
+        # Parse the payload
+        try:
+            payload = json.loads(payload_str)
+            
+            # Check for Lambda execution errors
+            if 'errorMessage' in payload:
+                logger.error(f"Lambda execution error: {payload}")
+                return GameStateResponse(
+                    success=False,
+                    message=f"Lambda execution error: {payload.get('errorMessage')}"
+                )
+                
+            return GameStateResponse(**payload)
+        except json.JSONDecodeError:
+            logger.error(f"Failed to decode payload as JSON: {payload_str}")
+            return GameStateResponse(
+                success=False,
+                message=f"Failed to decode payload as JSON: {payload_str}"
+            )
+            
+    except Exception as e:
+        logger.exception(f"Error applying cheat: {str(e)}")
+        return GameStateResponse(
+            success=False,
+            message=f"Error applying cheat: {str(e)}"
+        )
+
+@app.post("/wizard")
+def handle_wizard_action():
+    """Handle wizard actions"""
     try:
         # Parse request body
         request_data = app.current_event.json_body
-        mysterious_man_request = MysteriousManRequest(**request_data)
+        wizard_request = WizardRequest(**request_data)
         
         # Load existing state from GameState lambda
-        response = get_game_state(mysterious_man_request.game_state.adventurer_name)
+        response = get_game_state(wizard_request.game_state.adventurer_name)
         
         # Use saved state if it exists, otherwise use request state
         if response.success and response.game_state:
             game_state = response.game_state
+            blacksmith_state = response.blacksmith_state
         else:
-            game_state = mysterious_man_request.game_state
+            game_state = wizard_request.game_state
+            blacksmith_state = None
         
         # Initialize response
         action_response = ActionResponse(
             message="",
             game_state=game_state,
-            blacksmith_state=None
+            blacksmith_state=blacksmith_state
         )
         
         # Process the action
-        if mysterious_man_request.action == MysteriousManAction.ACCEPT_OFFER:
-            handle_accept_offer(mysterious_man_request, action_response)
-        elif mysterious_man_request.action == MysteriousManAction.DECLINE_OFFER:
-            handle_decline_offer(mysterious_man_request, action_response)
+        if wizard_request.action == WizardAction.KILL_WIZARD:
+            handle_kill_wizard(wizard_request, action_response)
+        elif wizard_request.action == WizardAction.TALK_TO_WIZARD:
+            handle_talk_to_wizard(wizard_request, action_response)
+        elif wizard_request.action == WizardAction.CHEAT:
+            # Use the cheat function to give the player a sword
+            cheat_response = cheat_get_sword(wizard_request.game_state.adventurer_name)
+            if cheat_response.success:
+                action_response.game_state = cheat_response.game_state
+                action_response.blacksmith_state = cheat_response.blacksmith_state
+                action_response.message = "The wizard chuckles and waves his hand. A sword materializes before you. 'Don't tell anyone I did that,' he winks."
+            else:
+                action_response.message = "The wizard's spell fizzles. 'Sorry, I can't seem to conjure a sword right now.'"
         
         # Save updated state to GameState lambda
-        save_response = save_game_state(action_response.game_state)
-        if not save_response.success:
-            logger.error(f"Failed to save game state: {save_response.message}")
+        if wizard_request.action != WizardAction.CHEAT:  # Skip save if we already saved in the cheat function
+            save_response = save_game_state(action_response.game_state, action_response.blacksmith_state)
+            if not save_response.success:
+                logger.error(f"Failed to save game state: {save_response.message}")
         
         return action_response.model_dump()
         
     except Exception as e:
-        logger.exception("Error processing mysterious man action")
+        logger.exception("Error processing wizard action")
         return {
             "statusCode": 500,
             "body": json.dumps({"error": str(e)})
         }
 
-def handle_accept_offer(request: MysteriousManRequest, response: ActionResponse):
-    """Handle the accept offer action"""
+def handle_kill_wizard(request: WizardRequest, response: ActionResponse):
+    """Handle the kill wizard action"""
+    if not response.game_state.quest_accepted:
+        response.message = "You don't have a quest to kill the wizard. The wizard looks at you with amusement. 'Did someone send you to kill me? Or did you just wander in here on your own?'"
+        return
+        
     if not response.game_state.has_sword and response.game_state.sword_type == SwordType.NONE:
-        response.message = "The mysterious man looks at your empty hands and laughs. 'Come back when you have a sword, fool!'"
+        response.message = "You try to attack the wizard with your bare hands. He laughs and waves his hand, sending you flying back out the door. 'Come back when you have a weapon at least!'"
+        response.game_state.current_location = "town"
+        return
+        
+    if response.game_state.sword_type == SwordType.HOLY:
+        response.message = "You strike the wizard down with your holy sword. It glows with righteous power as it pierces through his dark defenses. The wizard screams as he dissolves into shadow. The town cheers for you when you return with news of your victory. Your adventure has come to an end."
+        response.game_state.current_location = "town"
+        response.game_state.quest_accepted = False
+        response.game_over = True
+        tracer.put_annotation("wizard_defeated", "true")
     elif response.game_state.sword_type == SwordType.EVIL:
-        response.message = "The mysterious man looks at your sword and says, 'I see you've already accepted my offer.'"
-    elif response.game_state.sword_type == SwordType.HOLY:
-        response.message = "The mysterious man looks at your sword and hisses. 'That holy sword burns my eyes! Be gone!'"
+        response.message = "As you raise your sword to strike, something strange happens. Your arm freezes mid-swing. The wizard's laughter echoes in the chamber as your vision begins to blur. 'Did you truly believe you could defeat me with that?' he asks, his voice suddenly seeming to come from inside your own head. You feel a cold sensation spreading through your body from your hand still gripping the sword. The world fades to darkness. Months later, villagers whisper of a new figure seen at the wizard's side, wearing your face but with eyes devoid of recognition. The adventure ends, but not in the way you had hoped."
+        response.game_state.current_location = "wizard"
+        response.game_over = True
+        tracer.put_annotation("player_becomes_evil_minion", "true")
+        logger.critical("The adventurer was consumed by the evil sword's power without understanding what was happening.")
     else:
-        # Enchant the sword with evil power
-        response.game_state.sword_type = SwordType.EVIL
-        # Ensure has_sword remains true even though we're changing to an evil sword
-        response.game_state.has_sword = True
-        response.message = "The mysterious man touches your sword. It grows cold in your hand, and for a moment you see a faint red glow that quickly fades. 'Your sword is now... enhanced,' he whispers with a smile. 'You feel powerful, don't you?'"
-        gamelogs.error("The sword has been enchanted with dark magic, but the adventurer doesn't realize it yet.")
-        tracer.put_annotation("sword_enchanted_evil", "true")
+        # Regular sword
+        response.message = "You charge at the wizard with your ordinary sword. With a contemptuous flick of his wrist, he shatters your blade with magical force. The metal fragments turn to dust before they hit the ground. 'Pathetic,' the wizard sneers. 'Did you really think common steel could harm me?' You retreat hastily, knowing you'll need a more powerful weapon."
+        response.game_state.current_location = "town"
+        response.game_state.has_sword = False
+        response.game_state.sword_type = SwordType.NONE
+        tracer.put_annotation("sword_broken", "true")
 
-def handle_decline_offer(request: MysteriousManRequest, response: ActionResponse):
-    """Handle the decline offer action"""
-    response.message = "The mysterious man shrugs. 'Your loss,' he says, and walks away."
+def handle_talk_to_wizard(request: WizardRequest, response: ActionResponse):
+    """Handle talking to the wizard"""
+    if response.game_state.has_box:
+        response.message = "The wizard notices the box in your pocket. 'Ah, you found my puzzle box! I've been looking for that. But it seems you haven't opened it yet.'"
+    else:
+        response.message = "The wizard eyes you suspiciously. 'What do you want? I'm very busy with my evil... err, important research.'"
 
 @logger.inject_lambda_context(correlation_id_path=correlation_paths.API_GATEWAY_REST)
 @tracer.capture_lambda_handler

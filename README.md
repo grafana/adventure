@@ -37,7 +37,7 @@ Note the ARN of the created secret for use in the SAM deployment.
 
 1. Clone this repository:
 ```bash
-git clone https://github.com/yourusername/adventure.git -b aws-lambda-otel
+git clone https://github.com/grafana/adventure.git -b aws-lambda-otel
 cd adventure
 ```
 

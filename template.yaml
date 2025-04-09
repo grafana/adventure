@@ -6,7 +6,15 @@ Description: Adventure Quest Serverless Application
 Parameters:
   GrafanaCloudTokenSecretArn:
     Type: String
-    Default: arn:aws:secretsmanager:eu-central-1:182399686258:secret:adventurequest/grafana/otlp-ydVjUK
+    Default: <SECRET_ARN>
+  GrafanaCloudInstanceId:
+    Type: String
+    Default: <INSERT_OTLP_ENDPOINT_INSTANCE_ID>
+    Description: Grafana Cloud Instance ID
+  GrafanaCloudOtlpEndpoint:
+    Type: String
+    Default: <INSERT_OTLP_ENDPOINT>
+    Description: Grafana Cloud OTLP Endpoint URL
 
 Globals:
   Function:
@@ -21,8 +29,8 @@ Globals:
         POWERTOOLS_METRICS_NAMESPACE: AdventureQuest
         OTEL_PROPAGATORS: xray
         OPENTELEMETRY_COLLECTOR_CONFIG_URI: /var/task/collector.yaml
-        GRAFANA_CLOUD_INSTANCE_ID: 1222010
-        GRAFANA_CLOUD_OTLP_ENDPOINT: https://otlp-gateway-prod-eu-west-2.grafana.net/otlp
+        GRAFANA_CLOUD_INSTANCE_ID: !Ref GrafanaCloudInstanceId
+        GRAFANA_CLOUD_OTLP_ENDPOINT: !Ref GrafanaCloudOtlpEndpoint
         GRAFANA_CLOUD_API_KEY_ARN: !Ref GrafanaCloudTokenSecretArn
 
 
@@ -57,8 +65,8 @@ Resources:
           GAME_STATE_TABLE: !Ref GameStateTable
           OTEL_PROPAGATORS: xray
           OPENTELEMETRY_COLLECTOR_CONFIG_URI: /var/task/collector.yaml
-          GRAFANA_CLOUD_INSTANCE_ID: 1222010
-          GRAFANA_CLOUD_OTLP_ENDPOINT: https://otlp-gateway-prod-eu-west-2.grafana.net/otlp
+          GRAFANA_CLOUD_INSTANCE_ID: !Ref GrafanaCloudInstanceId
+          GRAFANA_CLOUD_OTLP_ENDPOINT: !Ref GrafanaCloudOtlpEndpoint
           GRAFANA_CLOUD_API_KEY_ARN: !Ref GrafanaCloudTokenSecretArn
       Policies:
         - DynamoDBCrudPolicy:
@@ -104,8 +112,8 @@ Resources:
           GAME_STATE_FUNCTION_NAME: !Ref GameStateFunction
           OTEL_PROPAGATORS: xray
           OPENTELEMETRY_COLLECTOR_CONFIG_URI: /var/task/collector.yaml
-          GRAFANA_CLOUD_INSTANCE_ID: 1222010
-          GRAFANA_CLOUD_OTLP_ENDPOINT: https://otlp-gateway-prod-eu-west-2.grafana.net/otlp
+          GRAFANA_CLOUD_INSTANCE_ID: !Ref GrafanaCloudInstanceId
+          GRAFANA_CLOUD_OTLP_ENDPOINT: !Ref GrafanaCloudOtlpEndpoint
           GRAFANA_CLOUD_API_KEY_ARN: !Ref GrafanaCloudTokenSecretArn
       Policies:
         - Statement:
@@ -137,8 +145,8 @@ Resources:
           GAME_STATE_FUNCTION_NAME: !Ref GameStateFunction
           OTEL_PROPAGATORS: xray
           OPENTELEMETRY_COLLECTOR_CONFIG_URI: /var/task/collector.yaml
-          GRAFANA_CLOUD_INSTANCE_ID: 1222010
-          GRAFANA_CLOUD_OTLP_ENDPOINT: https://otlp-gateway-prod-eu-west-2.grafana.net/otlp
+          GRAFANA_CLOUD_INSTANCE_ID: !Ref GrafanaCloudInstanceId
+          GRAFANA_CLOUD_OTLP_ENDPOINT: !Ref GrafanaCloudOtlpEndpoint
           GRAFANA_CLOUD_API_KEY_ARN: !Ref GrafanaCloudTokenSecretArn
       Policies:
         - Statement:
@@ -170,8 +178,8 @@ Resources:
           GAME_STATE_FUNCTION_NAME: !Ref GameStateFunction
           OTEL_PROPAGATORS: xray
           OPENTELEMETRY_COLLECTOR_CONFIG_URI: /var/task/collector.yaml
-          GRAFANA_CLOUD_INSTANCE_ID: 1222010
-          GRAFANA_CLOUD_OTLP_ENDPOINT: https://otlp-gateway-prod-eu-west-2.grafana.net/otlp
+          GRAFANA_CLOUD_INSTANCE_ID: !Ref GrafanaCloudInstanceId
+          GRAFANA_CLOUD_OTLP_ENDPOINT: !Ref GrafanaCloudOtlpEndpoint
           GRAFANA_CLOUD_API_KEY_ARN: !Ref GrafanaCloudTokenSecretArn
       Policies:
         - Statement:
@@ -203,8 +211,8 @@ Resources:
           GAME_STATE_FUNCTION_NAME: !Ref GameStateFunction
           OTEL_PROPAGATORS: xray
           OPENTELEMETRY_COLLECTOR_CONFIG_URI: /var/task/collector.yaml
-          GRAFANA_CLOUD_INSTANCE_ID: 1222010
-          GRAFANA_CLOUD_OTLP_ENDPOINT: https://otlp-gateway-prod-eu-west-2.grafana.net/otlp
+          GRAFANA_CLOUD_INSTANCE_ID: !Ref GrafanaCloudInstanceId
+          GRAFANA_CLOUD_OTLP_ENDPOINT: !Ref GrafanaCloudOtlpEndpoint
           GRAFANA_CLOUD_API_KEY_ARN: !Ref GrafanaCloudTokenSecretArn
       Policies:
         - Statement:
@@ -236,8 +244,8 @@ Resources:
           GAME_STATE_FUNCTION_NAME: !Ref GameStateFunction
           OTEL_PROPAGATORS: xray
           OPENTELEMETRY_COLLECTOR_CONFIG_URI: /var/task/collector.yaml
-          GRAFANA_CLOUD_INSTANCE_ID: 1222010
-          GRAFANA_CLOUD_OTLP_ENDPOINT: https://otlp-gateway-prod-eu-west-2.grafana.net/otlp
+          GRAFANA_CLOUD_INSTANCE_ID: !Ref GrafanaCloudInstanceId
+          GRAFANA_CLOUD_OTLP_ENDPOINT: !Ref GrafanaCloudOtlpEndpoint
           GRAFANA_CLOUD_API_KEY_ARN: !Ref GrafanaCloudTokenSecretArn
       Policies:
         - Statement:

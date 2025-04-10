@@ -4,9 +4,9 @@ import time
 import boto3
 import traceback
 from enum import Enum
-from typing import Optional, Tuple, Dict, Any, ForwardRef
+from typing import Optional, Tuple, Dict, Any
 from pydantic import BaseModel
-from aws_lambda_powertools import Logger, Metrics
+from aws_lambda_powertools import Logger
 from aws_lambda_powertools.event_handler import APIGatewayRestResolver
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from aws_lambda_powertools.logging import correlation_paths

@@ -33,24 +33,24 @@ from opentelemetry.sdk.trace.sampling import TraceIdRatioBased
 from opentelemetry.sdk.metrics import TraceBasedExemplarFilter
 
 import os
+import json
+
 # Interval in seconds for exporting metrics periodically.
 INTERVAL_SEC = 10
 
 
 class CustomTracer:
     def __init__(self, service_name):
-        # Set up TracerProvider only once globally
-        if os.environ.get("SETUP") == "docker":
-            exporter = OTLPSpanExporter(endpoint="http://alloy:4318/v1/traces")
-        else:
-            exporter = OTLPSpanExporter()
+        
+        # Create the span exporter with the configuration
+        exporter = OTLPSpanExporter()
         span_processor = BatchSpanProcessor(span_exporter=exporter)
 
         # Create a singleton TracerProvider if not already configured
         tracer_provider = TracerProvider(
                 sampler=TraceIdRatioBased(1.0),
                 resource=Resource.create(
-                    {"service.name": service_name, "service.instance.id": "instance-1"}
+                    {"service.name": service_name, "service.instance.id": "game-play"}
                 )
             )
 
@@ -67,11 +67,20 @@ class CustomMetrics:
     """
     def __init__(self, service_name):
         try:
+            # Get OTLP configuration from environment variables
+            otlp_config = get_otlp_config()
+            
             # Create the metrics exporter to send data to the backend.
             if os.environ.get("SETUP") == "docker":
-                exporter = OTLPMetricExporter(endpoint="http://alloy:4318/v1/metrics")
+                docker_endpoint = "http://alloy:4318/v1/metrics"
+                # For docker setup, keep the docker endpoint but add headers if available
+                exporter_config = {"endpoint": docker_endpoint}
+                if "headers" in otlp_config:
+                    exporter_config["headers"] = otlp_config["headers"]
+                exporter = OTLPMetricExporter(**exporter_config)
             else:
-                exporter = OTLPMetricExporter()
+                # For regular setup, use the OTLP config from environment variables
+                exporter = OTLPMetricExporter(**otlp_config)
 
             # Set up a PeriodicExportingMetricReader to export metrics at regular intervals.
             metric_reader = PeriodicExportingMetricReader(exporter, INTERVAL_SEC)
@@ -91,8 +100,12 @@ class CustomMetrics:
             # Obtain a meter to use in creating metrics.
             self.meter = metrics.get_meter(__name__)
 
-            # Indicate successful metrics configuration.
-            print("Metrics configured with OpenTelemetry with exemplar support enabled.")
+            # Log information about the configuration
+            otlp_info = {
+                "endpoint": otlp_config.get("endpoint", "default"),
+                "headers_present": bool(otlp_config.get("headers"))
+            }
+            print(f"Metrics configured with OpenTelemetry with exemplar support enabled. Config: {json.dumps(otlp_info)}")
         except Exception as e:
             # Handle errors during metrics setup and set the meter to None for safety.
             self.meter = None
@@ -145,12 +158,21 @@ class CustomLogFW:
         # Set the created LoggerProvider as the global logger provider.
         set_logger_provider(self.logger_provider)
 
+        # Get OTLP configuration from environment variables
+        otlp_config = get_otlp_config()
+
         # Create an instance of OTLPLogExporter to export logs.
         if os.environ.get("SETUP") == "docker":
-            exporter = OTLPLogExporter(endpoint="http://alloy:4318/v1/logs")
+            docker_endpoint = "http://alloy:4318/v1/logs"
+            # For docker setup, keep the docker endpoint but add headers if available
+            exporter_config = {"endpoint": docker_endpoint}
+            if "headers" in otlp_config:
+                exporter_config["headers"] = otlp_config["headers"]
+            exporter = OTLPLogExporter(**exporter_config)
             print(exporter._endpoint, flush=True)
         else:
-            exporter = OTLPLogExporter()
+            # For regular setup, use the OTLP config from environment variables
+            exporter = OTLPLogExporter(**otlp_config)
 
         # Add a BatchLogRecordProcessor to the logger provider.
         # This processor batches logs before sending them to the backend.
@@ -162,7 +184,11 @@ class CustomLogFW:
         # Setting log level to NOTSET to capture all log levels.
         handler = LoggingHandler(level=logging.NOTSET, logger_provider=self.logger_provider)
 
-        # Indicate successful logging configuration.
-        print("Logging configured with OpenTelemetry.")
+        # Log information about the configuration
+        otlp_info = {
+            "endpoint": otlp_config.get("endpoint", "default"),
+            "headers_present": bool(otlp_config.get("headers"))
+        }
+        print(f"Logging configured with OpenTelemetry. Config: {json.dumps(otlp_info)}")
 
         return handler

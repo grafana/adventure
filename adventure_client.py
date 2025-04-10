@@ -2,6 +2,9 @@ import os
 import json
 import requests
 from typing import Optional, Dict, Any, Tuple
+from otel import CustomTracer
+
+
 
 class Colors:
     RESET = "\033[0m"
@@ -18,8 +21,13 @@ class AdventureClient:
         self.game_state = None
         self.blacksmith_state = None
         self.current_actions = []
+        self.service_name = "adventure-client"  
+        ct = CustomTracer(service_name=self.service_name)
+        self.trace = ct.get_trace()
+        self.tracer = self.trace.get_tracer(self.service_name)
         
         self.setup_game()
+
         
     def check_for_saved_game(self, adventurer_name: str) -> Tuple[Optional[Dict], Optional[Dict]]:
         """Check if there's a saved game for this adventurer"""
@@ -52,22 +60,23 @@ class AdventureClient:
         
     def setup_game(self):
         """Initialize the game state"""
-        adventurer_name = input("Enter your name, brave adventurer: ")
+        self.adventurer_name = input("Enter your name, brave adventurer: ")
         
         # Check for saved game
-        saved_game, saved_blacksmith = self.check_for_saved_game(adventurer_name)
+
+        saved_game, saved_blacksmith = self.check_for_saved_game(self.adventurer_name)
         
         if saved_game:
-            load_save = input(f"Welcome back, {adventurer_name}! Would you like to continue your previous adventure? (yes/no): ").lower()
+            load_save = input(f"Welcome back, {self.adventurer_name}! Would you like to continue your previous adventure? (yes/no): ").lower()
             if load_save == "yes":
                 self.game_state = saved_game
                 self.blacksmith_state = saved_blacksmith
-                print(f"\nWelcome back to your adventure, {adventurer_name}! Type 'quit' to exit or 'save' to save your progress.")
+                print(f"\nWelcome back to your adventure, {self.adventurer_name}! Type 'quit' to exit or 'save' to save your progress.")
                 return
         
         # Create a new game state
         self.game_state = {
-            "adventurer_name": adventurer_name,
+            "adventurer_name": self.adventurer_name,
             "current_location": "start",
             "has_sword": False,
             "sword_type": "none",
@@ -89,9 +98,9 @@ class AdventureClient:
         # Immediately save the initial state to DynamoDB to ensure it's properly initialized
         save_success = self.save_game()
         if save_success:
-            print(f"\nWelcome to your text adventure, {adventurer_name}! Your game has been automatically saved. Type 'quit' to exit or 'save' to save your progress.")
+            print(f"\nWelcome to your text adventure, {self.adventurer_name}! Your game has been automatically saved. Type 'quit' to exit or 'save' to save your progress.")
         else:
-            print(f"\nWelcome to your text adventure, {adventurer_name}! Type 'quit' to exit or 'save' to save your progress.")
+            print(f"\nWelcome to your text adventure, {self.adventurer_name}! Type 'quit' to exit or 'save' to save your progress.")
     
     def display_current_location(self):
         """Display the current location and available actions"""
@@ -562,20 +571,27 @@ class AdventureClient:
     def play(self):
         """Main game loop"""
         self.display_current_location()
-        
-        while True:
-            command = input("> ").strip().lower()
-            if not self.process_command(command):
-                break
-        
-        # Ask if the user wants to start a new adventure
-        restart = input("\nWould you like to start a new adventure? (yes/no): ").strip().lower()
-        if restart == "yes":
-            self.restart_adventure()
-            self.display_current_location()
-            self.play()  # Recursively start a new game
-        else:
-            print("\nThank you for playing!")
+        with self.tracer.start_as_current_span(self.adventurer_name, attributes={"adventurer": self.adventurer_name}) as journey_span:
+            while True:
+                command = input("> ").strip().lower()
+                with self.tracer.start_as_current_span(
+                    f"action: {command}",
+                    attributes={
+                        "adventurer": self.adventurer_name,
+                        "location": self.game_state["current_location"]  # Adding location attribute to provide more context
+                    }
+                ) as action_span:
+                    if not self.process_command(command):
+                        break
+            
+            # Ask if the user wants to start a new adventure
+            restart = input("\nWould you like to start a new adventure? (yes/no): ").strip().lower()
+            if restart == "yes":
+                self.restart_adventure()
+                self.display_current_location()
+                self.play()  # Recursively start a new game
+            else:
+                print("\nThank you for playing!")
 
 if __name__ == "__main__":
     game = AdventureClient()

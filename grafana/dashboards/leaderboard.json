@@ -1,5 +1,13 @@
 {
   "__inputs": [
+    {
+      "name": "DS_GRAFANACLOUD-ADVENTUREQUEST-TRACES",
+      "label": "grafanacloud-adventurequest-traces",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "tempo",
+      "pluginName": "Tempo"
+    }
   ],
   "__elements": {},
   "__requires": [
@@ -7,7 +15,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "11.3.0"
+      "version": "12.0.0-85820.patch2-86140"
     },
     {
       "type": "panel",
@@ -19,7 +27,13 @@
       "type": "datasource",
       "id": "tempo",
       "name": "Tempo",
-      "version": "11.3.0-pre"
+      "version": "12.0.0-pre"
+    },
+    {
+      "type": "panel",
+      "id": "timeseries",
+      "name": "Time series",
+      "version": ""
     }
   ],
   "annotations": {
@@ -47,7 +61,122 @@
     {
       "datasource": {
         "type": "tempo",
-        "uid": "tempo"
+        "uid": "${DS_GRAFANACLOUD-ADVENTUREQUEST-TRACES}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.0.0-85820.patch2-86140",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tempo",
+            "uid": "${DS_GRAFANACLOUD-ADVENTUREQUEST-TRACES}"
+          },
+          "filters": [
+            {
+              "id": "92d19550",
+              "operator": "=",
+              "scope": "span",
+              "value": []
+            },
+            {
+              "id": "service-name",
+              "operator": "=",
+              "scope": "resource",
+              "tag": "service.name",
+              "value": [
+                "adventure-client"
+              ],
+              "valueType": "string"
+            }
+          ],
+          "limit": 20,
+          "metricsQueryType": "range",
+          "query": "{resource.service.name=\"adventure-client\"} | rate() by (.adventurer)",
+          "queryType": "traceql",
+          "refId": "A",
+          "tableType": "traces"
+        }
+      ],
+      "title": "Leaderboard",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "tempo",
+        "uid": "${DS_GRAFANACLOUD-ADVENTUREQUEST-TRACES}"
       },
       "fieldConfig": {
         "defaults": {
@@ -66,8 +195,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -79,10 +207,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 20,
+        "h": 8,
         "w": 24,
         "x": 0,
-        "y": 0
+        "y": 8
       },
       "id": 1,
       "options": {
@@ -97,33 +225,44 @@
         },
         "showHeader": true
       },
-      "pluginVersion": "11.3.0",
+      "pluginVersion": "12.0.0-85820.patch2-86140",
       "targets": [
         {
           "datasource": {
             "type": "tempo",
-            "uid": "tempo"
+            "uid": "${DS_GRAFANACLOUD-ADVENTUREQUEST-TRACES}"
           },
           "filters": [
             {
-              "id": "8232599b",
+              "id": "92d19550",
               "operator": "=",
-              "scope": "span"
+              "scope": "span",
+              "tag": "adventurer",
+              "value": []
+            },
+            {
+              "id": "service-name",
+              "operator": "=",
+              "scope": "resource",
+              "tag": "service.name",
+              "value": [
+                "adventure-client"
+              ],
+              "valueType": "string"
             }
           ],
-          "limit": 300,
-          "query": "{}",
-          "queryType": "traceql",
+          "limit": 20,
+          "metricsQueryType": "range",
+          "queryType": "traceqlSearch",
           "refId": "A",
-          "spss": 3,
           "tableType": "traces"
         }
       ],
-      "title": "Leader Board",
+      "title": "Leaderboard",
       "type": "table"
     }
   ],
-  "schemaVersion": 40,
+  "schemaVersion": 41,
   "tags": [],
   "templating": {
     "list": []
@@ -134,8 +273,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Leaderboard",
-  "uid": "ce4bo1dlkrlz4e",
-  "version": 19,
+  "title": "Adventure Quest Leaderboard",
+  "uid": "eeihvv2jhckjkd",
+  "version": 4,
   "weekStart": ""
 }

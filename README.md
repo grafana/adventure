@@ -91,7 +91,10 @@ pip install -r requirements.txt
 
 Next export the API Gateway endpoint as an environment variable:
 ```bash
-export API_URL=https://foo.execute-api.eu-central-1.amazonaws.com/Prod/
+export API_URL=https://foo.execute-api.eu-central-1.amazonaws.com/Prod/ # This is the AWS API Gateway endpoint
+export OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp-gateway-prod-eu-west-2.grafana.net/otlp
+export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Basic%20<TOKEN>" # %20 is required by python to encode the space
+export OTEL_EXPORTER_OTLP_PROTOCOL="http/protobuf"
 ```
 
 Now you can run the client:
@@ -113,3 +116,7 @@ Now that you have the game running, a key aspect of the game that is missing is 
 6. Click on the "Import" button.
 
 This will load in your adventure quest dashboard. You will need this to progress through the game.
+
+## Leaderboard
+
+

@@ -1,9 +1,0 @@
-apiVersion: 1
-
-providers:
-  - name: adventure # A uniquely identifiable name for the provider
-    folder: Adventure Game # The folder where to place the dashboards
-    type: file
-    options:
-      path:
-        /etc/grafana/provisioning/dashboards/

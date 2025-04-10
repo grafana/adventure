@@ -119,4 +119,36 @@ This will load in your adventure quest dashboard. You will need this to progress
 
 ## Leaderboard
 
+To enable the leaderboard, you will need to import a new dashboard into Grafana Cloud.
+
+1. Go to the Grafana Cloud instance you used when deploying the application.
+2. Navigate to the Observability section.
+3. Click on the "Dashboards" tab.
+4. Click on the "Import" button.
+5. Copy the JSON from the [grafana/dashboards/leaderboard.json](grafana/dashboards/leaderboard.json) file and paste it into the text area.
+6. Click on the "Import" button.
+
+This will load in your leaderboard dashboard. You will need this to progress through the game.
+
+## Playing the game
+
+Now that you have all the pieces in place, you can play the game. 
+
+1. (If you haven't already) run the `adventure_client.py` script to start the game (make sure you have exported the environment variables as described in the [Setting up the Adventure Quest Client](#setting-up-the-adventure-quest-client) section)
+1. You will be asked to enter your name.
+1. Your Journey will now begin.
+1. Use either key commands to navigate the game
+1. If you would like to experince all Observability challanges then follow this path
+   - town
+   - quest giver
+   - blacksmith
+   - mysterious man (accept quest)
+   - quest giver
+   - chapel
+   - quest giver
+   - wizard
+1. Try to play the game first without using the Grafana Dashboard and when you get stuck try to use the dashboard to help you.
+1. Tip: There is one metric and log challenge in the game.
+1. Checkout the leaderboard once you are done.
+
 

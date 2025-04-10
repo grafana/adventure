@@ -16,8 +16,9 @@ from opentelemetry.sdk.resources import Resource
 from opentelemetry import metrics
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
-from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader,MetricExporter
+from opentelemetry.sdk.metrics.export import MetricReader, MetricExporter, MetricsData
 from opentelemetry.sdk.metrics import TraceBasedExemplarFilter
+from opentelemetry.context import _SUPPRESS_INSTRUMENTATION_KEY, attach, detach, set_value
 
 service_name = "game_state"
 
@@ -66,80 +67,115 @@ class GameStateResponse(BaseModel):
     game_state: Optional[GameState] = None
     blacksmith_state: Optional[BlacksmithState] = None
 
+class BatchExportingMetricReader(MetricReader):
+    def __init__(self, exporter: MetricExporter):
+        # Pass the exporter's preferred temporality and aggregation
+        super().__init__(
+            preferred_temporality=exporter._preferred_temporality,
+            preferred_aggregation=exporter._preferred_aggregation,
+        )
+        self._exporter = exporter
+
+    def _receive_metrics(self, metrics_data: MetricsData, timeout_millis=1000, **kwargs):
+        # Export metrics data immediately after receiving it
+        # Use the token pattern to suppress instrumentation during export
+        token = attach(set_value(_SUPPRESS_INSTRUMENTATION_KEY, True))
+        try:
+            self._exporter.export(metrics_data, timeout_millis=timeout_millis, **kwargs)
+            logger.info(f"Exported metrics: {metrics_data}")
+        except Exception as e:
+            logger.exception(f"Exception while exporting metrics: {e}")
+        finally:
+            detach(token)
+
+    def force_flush(self, timeout_millis=10000) -> bool:
+        """Forces flush of metrics to the exporter
+        
+        Args:
+            timeout_millis: The maximum amount of time to wait for the flush
+                to complete, in milliseconds.
+                
+        Returns:
+            True if the flush was successful, False otherwise.
+        """
+        # First call the parent's force_flush which will trigger collect()
+        super().force_flush(timeout_millis=timeout_millis)
+        # Then call force_flush on the exporter
+        return self._exporter.force_flush(timeout_millis=timeout_millis)
+
+    def shutdown(self, timeout_millis=1000, **kwargs) -> None:
+        """Shuts down the metric reader and exporter.
+        
+        Args:
+            timeout_millis: The maximum amount of time to wait for the exporter
+                to shutdown, in milliseconds.
+        """
+        self._exporter.shutdown(timeout_millis=timeout_millis, **kwargs)
+
 class CustomMetrics:
     """
-    CustomMetrics sets up metrics collection using OpenTelemetry with a specified service name.
+    CustomMetrics sets up metrics collection using OpenTelemetry with a short export interval.
     """
     def __init__(self, service_name):
         try:
-            INTERVAL_SEC = 100
             # Create the exporter
-            exporter = OTLPMetricExporter()
-
-            # Create the metric reader with the exporter
-            metric_reader = PeriodicExportingMetricReader(exporter, export_interval_millis=INTERVAL_SEC)
-
+            self.exporter = OTLPMetricExporter()
+            # Create an instance of the custom MetricReader
+            self.metric_reader = BatchExportingMetricReader(self.exporter)
+            
             # Set up resource information
-            resource = Resource.create({"service.name": service_name, "service.instance.id": "game-play"})
-
+            resource = Resource.create({
+                "service.name": service_name,
+                "service.instance.id": "game-play"
+            })
+            
             # Create MeterProvider with the reader and resource
             self.meter_provider = MeterProvider(
-                metric_readers=[metric_reader],
+                metric_readers=[self.metric_reader],
                 resource=resource,
                 exemplar_filter=TraceBasedExemplarFilter()
             )
-
+            
             # Set the global meter provider
             metrics.set_meter_provider(self.meter_provider)
-
+            
             # Create a meter from the provider
             self.meter = metrics.get_meter(__name__)
-
+            
             # Store the current sword counts as instance variables
             self.regular_sword_count = 0
             self.holy_sword_count = 0
             self.evil_sword_count = 0
-
-            # Create observable gauges for sword types instead of up/down counters
-            self.regular_sword_gauge = self.meter.create_observable_gauge(
+            
+            # Create gauges for sword types
+            self.regular_sword_gauge = self.meter.create_gauge(
                 name="swords",
-                description="The number of regular swords owned",
-                callbacks=[self.observe_regular_swords]
+                description="The number of regular swords owned"
             )
             
-            self.holy_sword_gauge = self.meter.create_observable_gauge(
+            self.holy_sword_gauge = self.meter.create_gauge(
                 name="holy_sword",
-                description="The number of holy swords owned",
-                callbacks=[self.observe_holy_swords]
+                description="The number of holy swords owned"
             )
             
-            self.evil_sword_gauge = self.meter.create_observable_gauge(
+            self.evil_sword_gauge = self.meter.create_gauge(
                 name="evil_sword",
-                description="The number of evil swords owned",
-                callbacks=[self.observe_evil_swords]
+                description="The number of evil swords owned"
             )
-
-            # Indicate successful metrics configuration.
-            logger.info("Metrics configured with OpenTelemetry with exemplar support enabled.")
+            
+            logger.info("Metrics configured with very short export interval")
         except Exception as e:
-            # Handle errors during metrics setup and set variables to None for safety.
+            logger.error(f"Error configuring metrics: {e}")
             self.meter = None
+            self.meter_provider = None
+            self.reader = None
+            self.exporter = None
             self.regular_sword_count = 0
             self.holy_sword_count = 0
             self.evil_sword_count = 0
-            print(f"Error configuring metrics: {e}")
     
     def get_meter(self):
         return self.meter
-    
-    def observe_regular_swords(self, observer):
-        return [metrics.Observation(value=self.regular_sword_count, attributes={})]
-    
-    def observe_holy_swords(self, observer):
-        return [metrics.Observation(value=self.holy_sword_count, attributes={})]
-    
-    def observe_evil_swords(self, observer):
-        return [metrics.Observation(value=self.evil_sword_count, attributes={})]
     
     def track_sword_state(self, game_state):
         """Track sword state changes with metrics"""
@@ -147,27 +183,31 @@ class CustomMetrics:
             return
             
         try:
-            # Simply set the appropriate count based on current state
-            # No need to reset all values first, just directly set them
+            # Set the counts based on current state
+            old_regular = self.regular_sword_count
+            old_holy = self.holy_sword_count
+            old_evil = self.evil_sword_count
+            
+            # Reset all values first
+            self.regular_sword_count = 0
+            self.holy_sword_count = 0
+            self.evil_sword_count = 0
+            
+            # Set the appropriate counter based on current sword type
             if game_state.has_sword and game_state.sword_type == SwordType.REGULAR:
                 self.regular_sword_count = 1
-                self.holy_sword_count = 0
-                self.evil_sword_count = 0
             elif game_state.has_sword and game_state.sword_type == SwordType.HOLY:
-                self.regular_sword_count = 0
                 self.holy_sword_count = 1
-                self.evil_sword_count = 0
             elif game_state.has_sword and game_state.sword_type == SwordType.EVIL:
-                self.regular_sword_count = 0
-                self.holy_sword_count = 0
                 self.evil_sword_count = 1
-            else:
-                # No sword
-                self.regular_sword_count = 0
-                self.holy_sword_count = 0
-                self.evil_sword_count = 0
             
-            logger.info(f"Sword metrics set: regular={self.regular_sword_count}, holy={self.holy_sword_count}, evil={self.evil_sword_count}")
+            # Update the gauges with their current values
+            self.regular_sword_gauge.set(self.regular_sword_count, {"sword_type": "regular"})
+            self.holy_sword_gauge.set(self.holy_sword_count, {"sword_type": "holy"}) 
+            self.evil_sword_gauge.set(self.evil_sword_count, {"sword_type": "evil"})
+            self.metric_reader.force_flush()
+            
+            logger.info(f"Sword metrics updated: regular={old_regular}->{self.regular_sword_count}, holy={old_holy}->{self.holy_sword_count}, evil={old_evil}->{self.evil_sword_count}")
         except Exception as e:
             logger.error(f"Error tracking sword metrics: {e}")
 

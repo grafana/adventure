@@ -15,8 +15,9 @@ from opentelemetry.sdk.resources import Resource
 from opentelemetry import metrics
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
-from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
+from opentelemetry.sdk.metrics.export import MetricReader, MetricExporter, MetricsData
 from opentelemetry.sdk.metrics import TraceBasedExemplarFilter
+from opentelemetry.context import _SUPPRESS_INSTRUMENTATION_KEY, attach, detach, set_value
 
 service_name = "blacksmith"
 # Initialize AWS Lambda Powertools
@@ -24,24 +25,65 @@ logger = Logger()
 tracer = Tracer()
 app = APIGatewayRestResolver()
 
+
+class BatchExportingMetricReader(MetricReader):
+    def __init__(self, exporter: MetricExporter):
+        # Pass the exporter's preferred temporality and aggregation
+        super().__init__(
+            preferred_temporality=exporter._preferred_temporality,
+            preferred_aggregation=exporter._preferred_aggregation,
+        )
+        self._exporter = exporter
+
+    def _receive_metrics(self, metrics_data: MetricsData, timeout_millis=1000, **kwargs):
+        # Export metrics data immediately after receiving it
+        # Use the token pattern to suppress instrumentation during export
+        token = attach(set_value(_SUPPRESS_INSTRUMENTATION_KEY, True))
+        try:
+            self._exporter.export(metrics_data, timeout_millis=timeout_millis, **kwargs)
+            logger.info(f"Exported metrics: {metrics_data}")
+        except Exception as e:
+            logger.exception(f"Exception while exporting metrics: {e}")
+        finally:
+            detach(token)
+
+    def force_flush(self, timeout_millis=10000) -> bool:
+        """Forces flush of metrics to the exporter
+        
+        Args:
+            timeout_millis: The maximum amount of time to wait for the flush
+                to complete, in milliseconds.
+                
+        Returns:
+            True if the flush was successful, False otherwise.
+        """
+        # First call the parent's force_flush which will trigger collect()
+        super().force_flush(timeout_millis=timeout_millis)
+        # Then call force_flush on the exporter
+        return self._exporter.force_flush(timeout_millis=timeout_millis)
+
+    def shutdown(self, timeout_millis=1000, **kwargs) -> None:
+        """Shuts down the metric reader and exporter.
+        
+        Args:
+            timeout_millis: The maximum amount of time to wait for the exporter
+                to shutdown, in milliseconds.
+        """
+        self._exporter.shutdown(timeout_millis=timeout_millis, **kwargs)
+
 class SimpleMetrics:
     """
     SimpleMetrics sets up metrics collection using OpenTelemetry with a short export interval.
     """
     def __init__(self, service_name):
         try:
-            # Very short export interval (500ms) for near real-time updates
-            INTERVAL_MILLIS = 500
+
             
             # Create the exporter
             self.exporter = OTLPMetricExporter()
-            
-            # Create the metric reader with the exporter and short interval
-            self.reader = PeriodicExportingMetricReader(
-                exporter=self.exporter,
-                export_interval_millis=INTERVAL_MILLIS,
-                export_timeout_millis=INTERVAL_MILLIS
-            )
+            # Create an instance of the custom MetricReader
+            self.metric_reader = BatchExportingMetricReader(self.exporter)
+
             
             # Set up resource information
             resource = Resource.create({
@@ -51,7 +93,7 @@ class SimpleMetrics:
             
             # Create MeterProvider with the reader and resource
             self.meter_provider = MeterProvider(
-                metric_readers=[self.reader],
+                metric_readers=[self.metric_reader],
                 resource=resource,
                 exemplar_filter=TraceBasedExemplarFilter()
             )
@@ -66,10 +108,9 @@ class SimpleMetrics:
             self.heat_value = 0
             
             # Create an observable gauge for the forge heat
-            self.forge_heat_gauge = self.meter.create_observable_gauge(
+            self.forge_heat_gauge = self.meter.create_gauge(
                 name="forge_heat",
                 description="The current heat level of the forge",
-                callbacks=[self.observe_forge_heat]
             )
             
             logger.info("Metrics configured with very short export interval")
@@ -81,24 +122,14 @@ class SimpleMetrics:
             self.exporter = None
             self.heat_value = 0
     
-    def observe_forge_heat(self, observer):
-        """Callback for the observable gauge that provides the current forge heat"""
-        return [metrics.Observation(self.heat_value, {"location": "blacksmith"})]
     
     def set_forge_heat(self, heat):
         """Set the forge heat value, which will be picked up on the next observation"""
         old_heat = self.heat_value
         self.heat_value = heat
+        self.forge_heat_gauge.set(self.heat_value, {"location": "blacksmith"})
+        self.metric_reader.force_flush()
         logger.info(f"Forge heat updated: {old_heat} -> {heat}")
-    
-    def force_flush(self):
-        """Force the reader to flush metrics immediately"""
-        try:
-            if hasattr(self, 'reader') and self.reader:
-                logger.info("Forcing metrics flush")
-                self.reader.force_flush(timeout_millis=10000)
-        except Exception as e:
-            logger.error(f"Error forcing metrics flush: {e}")
 
 # Initialize metrics
 metrics_instance = SimpleMetrics(service_name=service_name)
@@ -357,21 +388,11 @@ def lambda_handler(event: dict, context: LambdaContext) -> dict:
         # Otherwise handle as API Gateway request
         result = app.resolve(event, context)
         
-        # Force flush metrics before Lambda completes
-        try:
-            logger.info("Lambda completing - forcing metrics flush")
-            metrics_instance.force_flush()
-        except Exception as e:
-            logger.warning(f"Failed to force flush metrics at Lambda completion: {e}")
+        logger.info("Lambda completing")
             
         return result
     except Exception as e:
         logger.exception(f"Error in lambda handler: {str(e)}")
-        # Try to flush metrics even on error
-        try:
-            metrics_instance.force_flush()
-        except:
-            pass
         raise
 
 @app.post("/blacksmith")
@@ -414,12 +435,6 @@ def handle_blacksmith_action():
         save_response = save_game_state(action_response.game_state, action_response.blacksmith_state)
         if not save_response.success:
             logger.error(f"Failed to save game state: {save_response.message}")
-        
-        # Final force flush before returning to ensure metrics are sent
-        try:
-            metrics_instance.force_flush()
-        except Exception as e:
-            logger.warning(f"Failed to force flush metrics: {e}")
         
         return action_response.model_dump()
         
@@ -479,12 +494,9 @@ def handle_heat_forge(request: BlacksmithRequest, response: ActionResponse):
     response.blacksmith_state.heat += 5
     new_heat = response.blacksmith_state.heat
     
-    # Update the metrics with the current forge heat
-    logger.info(f"Updating forge heat metrics: {old_heat} -> {new_heat}")
+    # Update the metrics with the current forge heat through the set_forge_heat method
+    logger.info(f"Updating forge heat: {old_heat} -> {new_heat}")
     metrics_instance.set_forge_heat(new_heat)
-    
-    # Force a flush of the metrics to ensure they're sent quickly
-    metrics_instance.force_flush()
     
     # Check if the forge gets too hot and burns down the blacksmith (≥ 50)
     if response.blacksmith_state.heat >= 50:
@@ -507,12 +519,9 @@ def handle_cool_forge(request: BlacksmithRequest, response: ActionResponse):
     response.blacksmith_state.heat = 0
     response.blacksmith_state.is_heating_forge = False
     
-    # Update the metrics with the current forge heat
+    # Update the metrics with the current forge heat through the set_forge_heat method
     logger.info(f"Cooling forge from {old_heat} to 0")
     metrics_instance.set_forge_heat(0)
-    
-    # Force a flush of the metrics to ensure they're sent quickly
-    metrics_instance.force_flush()
     
     response.message = "You pour a bucket of water over the forge. The coals sizzle and the forge cools down completely."
 
@@ -532,10 +541,6 @@ def handle_check_sword(request: BlacksmithRequest, response: ActionResponse):
         response.game_state.sword_type = SwordType.REGULAR  # Set the sword type to REGULAR
         response.message = "The sword is ready. You take it from the blacksmith."
         logger.info("SUCCESS: Sword forged successfully at perfect temperature!")
-        # Update metrics one last time to show the heat that forged the sword
-        metrics_instance.set_forge_heat(heat)
-        # Force a metrics flush for this important event
-        metrics_instance.force_flush()
         tracer.put_annotation("sword_forged", "true")
     elif heat > 10:
         # Too hot, sword melts
@@ -544,15 +549,9 @@ def handle_check_sword(request: BlacksmithRequest, response: ActionResponse):
         response.blacksmith_state.is_heating_forge = False  # Stop heating after failure
         response.message = "The sword has completely melted! The blacksmith looks at you with disappointment."
         logger.warning(f"FAIL: Sword melted due to excessive heat: {heat}")
-        # Update metrics to show the heat that melted the sword
-        metrics_instance.set_forge_heat(heat)
-        # Force a metrics flush for this important event
-        metrics_instance.force_flush()
         tracer.put_annotation("sword_melted", "true")
     else:
         # Not hot enough
         response.message = "The forge is not hot enough yet. The blacksmith tells you to wait."
         logger.info(f"Forge too cold for sword forging: {heat}/10")
-        # Update metrics to reinforce current heat
-        metrics_instance.set_forge_heat(heat)
         tracer.put_annotation("forge_too_cold", "true") 

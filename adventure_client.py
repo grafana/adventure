@@ -574,11 +574,23 @@ class AdventureClient:
         with self.tracer.start_as_current_span(self.adventurer_name, attributes={"adventurer": self.adventurer_name}) as journey_span:
             while True:
                 command = input("> ").strip().lower()
+                
+                # Determine if this is a numeric command and get the actual action
+                action_text = command
+                try:
+                    action_index = int(command) - 1
+                    if 0 <= action_index < len(self.current_actions):
+                        action_text = self.current_actions[action_index]
+                except ValueError:
+                    pass
+                
                 with self.tracer.start_as_current_span(
-                    f"action: {command}",
+                    f"action: {action_text}",
                     attributes={
                         "adventurer": self.adventurer_name,
-                        "location": self.game_state["current_location"]  # Adding location attribute to provide more context
+                        "location": self.game_state["current_location"],
+                        "raw_command": command,
+                        "action": action_text
                     }
                 ) as action_span:
                     if not self.process_command(command):

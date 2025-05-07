@@ -19,11 +19,27 @@ from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExp
 from opentelemetry.sdk.metrics.export import MetricReader, MetricExporter, MetricsData
 from opentelemetry.sdk.metrics import TraceBasedExemplarFilter
 from opentelemetry.context import _SUPPRESS_INSTRUMENTATION_KEY, attach, detach, set_value
+# Add OpenTelemetry tracing imports
+from opentelemetry import trace
+from opentelemetry.propagate import extract, inject
+from opentelemetry.trace import SpanKind
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 
 service_name = "game_state"
 
-# Initialize AWS Lambda Powertools
+# Initialize logging
 logger = Logger()
+# Set up OpenTelemetry tracing
+resource = Resource.create({"service.name": service_name})
+tracer_provider = TracerProvider(resource=resource)
+otlp_span_exporter = OTLPSpanExporter()
+span_processor = BatchSpanProcessor(otlp_span_exporter)
+tracer_provider.add_span_processor(span_processor)
+trace.set_tracer_provider(tracer_provider)
+tracer = trace.get_tracer(service_name)
+
 app = APIGatewayRestResolver()
 
 # Model definitions
@@ -278,36 +294,52 @@ table = create_table_if_not_exists()
 # DynamoDB operations
 def save_game_state(game_state: GameState, blacksmith_state: Optional[BlacksmithState] = None) -> bool:
     """Save game state to DynamoDB"""
-    global table
-    try:
-        # Track sword metrics
-        otel_metrics.track_sword_state(game_state)
-        
-        # Convert states to dict and remove None values
-        game_state_dict = {k: v for k, v in game_state.model_dump().items() if v is not None}
-        
-        # Add TTL of 24 hours
-        game_state_dict['ttl'] = int(time.time()) + (24 * 60 * 60)
-        
-        # Add blacksmith state if provided
-        if blacksmith_state:
-            blacksmith_dict = {k: v for k, v in blacksmith_state.model_dump().items() if v is not None}
-            game_state_dict['blacksmith_state'] = blacksmith_dict
-        
-        # Save to DynamoDB
-        table.put_item(Item=game_state_dict)
-        logger.info(f"Saved game state for {game_state.adventurer_name}")
-        return True
-        
-    except ClientError as e:
-        if isinstance(e, dynamodb_client.exceptions.ResourceNotFoundException):
-            # Table doesn't exist, try to create it and retry
-            logger.warning(f"Table {table_name} not found, trying to create it...")
-            table = create_table_if_not_exists()
-            # Retry save operation
-            return save_game_state(game_state, blacksmith_state)
-        else:
-            logger.error(f"Failed to save game state: {str(e)}")
+    with tracer.start_as_current_span("save_game_state") as span:
+        global table
+        try:
+            span.set_attribute("adventurer_name", game_state.adventurer_name)
+            span.set_attribute("has_sword", game_state.has_sword)
+            span.set_attribute("sword_type", game_state.sword_type.value)
+            
+            # Track sword metrics
+            otel_metrics.track_sword_state(game_state)
+            
+            # Convert states to dict and remove None values
+            game_state_dict = {k: v for k, v in game_state.model_dump().items() if v is not None}
+            
+            # Add TTL of 24 hours
+            game_state_dict['ttl'] = int(time.time()) + (24 * 60 * 60)
+            
+            # Add blacksmith state if provided
+            if blacksmith_state:
+                blacksmith_dict = {k: v for k, v in blacksmith_state.model_dump().items() if v is not None}
+                game_state_dict['blacksmith_state'] = blacksmith_dict
+            
+            # Save to DynamoDB
+            with tracer.start_as_current_span("dynamodb_put_item") as db_span:
+                db_span.set_attribute("table", table_name)
+                db_span.set_attribute("operation", "put_item")
+                table.put_item(Item=game_state_dict)
+                
+            logger.info(f"Saved game state for {game_state.adventurer_name}")
+            return True
+            
+        except ClientError as e:
+            span.record_exception(e)
+            span.set_status(trace.StatusCode.ERROR, str(e))
+            if isinstance(e, dynamodb_client.exceptions.ResourceNotFoundException):
+                # Table doesn't exist, try to create it and retry
+                logger.warning(f"Table {table_name} not found, trying to create it...")
+                table = create_table_if_not_exists()
+                # Retry save operation
+                return save_game_state(game_state, blacksmith_state)
+            else:
+                logger.error(f"Failed to save game state: {str(e)}")
+                return False
+        except Exception as e:
+            span.record_exception(e)
+            span.set_status(trace.StatusCode.ERROR, str(e))
+            logger.error(f"Unexpected error saving game state: {str(e)}")
             return False
 
 def migrate_game_state(item):
@@ -327,46 +359,65 @@ def migrate_game_state(item):
 
 def load_game_state(adventurer_name: str) -> Tuple[Optional[GameState], Optional[BlacksmithState]]:
     """Load game state from DynamoDB"""
-    global table
-    try:
-        response = table.get_item(
-            Key={'adventurer_name': adventurer_name}
-        )
-        
-        if 'Item' not in response:
-            logger.info(f"No saved game state found for {adventurer_name}")
-            return None, None
-        
-        # Extract blacksmith state if it exists
-        item = response['Item']
-        
-        # Migrate item if needed
-        item = migrate_game_state(item)
-        
-        blacksmith_state = None
-        if 'blacksmith_state' in item:
-            blacksmith_data = item.pop('blacksmith_state')
-            blacksmith_state = BlacksmithState(**blacksmith_data)
-        
-        # Remove TTL from game state
-        if 'ttl' in item:
-            del item['ttl']
-        
-        # Create GameState object
-        game_state = GameState(**item)
-        logger.info(f"Loaded game state for {adventurer_name}")
-        
-        return game_state, blacksmith_state
-        
-    except ClientError as e:
-        if isinstance(e, dynamodb_client.exceptions.ResourceNotFoundException):
-            # Table doesn't exist, try to create it
-            logger.warning(f"Table {table_name} not found, trying to create it...")
-            table = create_table_if_not_exists()
-            # For GET operations, we just return None as there's no data yet
-            return None, None
-        else:
-            logger.error(f"Failed to load game state: {str(e)}")
+    with tracer.start_as_current_span("load_game_state") as span:
+        global table
+        try:
+            span.set_attribute("adventurer_name", adventurer_name)
+            
+            with tracer.start_as_current_span("dynamodb_get_item") as db_span:
+                db_span.set_attribute("table", table_name)
+                db_span.set_attribute("operation", "get_item")
+                response = table.get_item(
+                    Key={'adventurer_name': adventurer_name}
+                )
+            
+            if 'Item' not in response:
+                logger.info(f"No saved game state found for {adventurer_name}")
+                span.set_attribute("state_found", False)
+                return None, None
+            
+            # Extract blacksmith state if it exists
+            item = response['Item']
+            
+            # Migrate item if needed
+            item = migrate_game_state(item)
+            
+            blacksmith_state = None
+            if 'blacksmith_state' in item:
+                blacksmith_data = item.pop('blacksmith_state')
+                blacksmith_state = BlacksmithState(**blacksmith_data)
+            
+            # Remove TTL from game state
+            if 'ttl' in item:
+                del item['ttl']
+            
+            # Create GameState object
+            game_state = GameState(**item)
+            logger.info(f"Loaded game state for {adventurer_name}")
+            
+            span.set_attribute("state_found", True)
+            span.set_attribute("has_sword", game_state.has_sword)
+            span.set_attribute("sword_type", game_state.sword_type.value)
+            span.set_attribute("blacksmith_state_exists", blacksmith_state is not None)
+            
+            return game_state, blacksmith_state
+            
+        except ClientError as e:
+            span.record_exception(e)
+            span.set_status(trace.StatusCode.ERROR, str(e))
+            if isinstance(e, dynamodb_client.exceptions.ResourceNotFoundException):
+                # Table doesn't exist, try to create it
+                logger.warning(f"Table {table_name} not found, trying to create it...")
+                table = create_table_if_not_exists()
+                # For GET operations, we just return None as there's no data yet
+                return None, None
+            else:
+                logger.error(f"Failed to load game state: {str(e)}")
+                return None, None
+        except Exception as e:
+            span.record_exception(e)
+            span.set_status(trace.StatusCode.ERROR, str(e))
+            logger.error(f"Unexpected error loading game state: {str(e)}")
             return None, None
 
 def create_default_game_state(adventurer_name: str) -> Tuple[GameState, BlacksmithState]:
@@ -423,104 +474,161 @@ def delete_game_state(adventurer_name: str) -> bool:
 
 def process_game_state_action(action, params):
     """Process game state actions (get, save, delete) - used for both direct Lambda invocations and API requests"""
-    try:
-        if action == 'get':
-            adventurer_name = params.get('adventurer_name')
-            game_state, blacksmith_state = load_game_state(adventurer_name)
+    with tracer.start_as_current_span(f"process_{action}_action") as span:
+        try:
+            span.set_attribute("action", action)
+            span.set_attribute("adventurer_name", params.get('adventurer_name', ''))
             
-            # If no state exists, create a default one for new players
-            if not game_state:
-                logger.info(f"Creating default state for new player: {adventurer_name}")
-                game_state, blacksmith_state = create_default_game_state(adventurer_name)
-            
-            # Track sword metrics when loading state
-            if game_state:
-                otel_metrics.track_sword_state(game_state)
+            if action == 'get':
+                adventurer_name = params.get('adventurer_name')
+                game_state, blacksmith_state = load_game_state(adventurer_name)
                 
-            return {
-                'success': True,
-                'message': 'Game state loaded successfully',
-                'game_state': game_state.model_dump() if game_state else None,
-                'blacksmith_state': blacksmith_state.model_dump() if blacksmith_state else None
-            }
-        elif action == 'save':
-            adventurer_name = params.get('adventurer_name')
-            game_state_data = params.get('game_state')
-            blacksmith_state_data = params.get('blacksmith_state')
-            
-            # Create GameState and BlacksmithState objects from the request data
-            game_state = GameState(**game_state_data) if game_state_data else None
-            blacksmith_state = BlacksmithState(**blacksmith_state_data) if blacksmith_state_data else None
-            
-            # Save to DynamoDB
-            success = save_game_state(game_state, blacksmith_state)
-            
-            return {
-                'success': success,
-                'message': 'Game state saved successfully' if success else 'Failed to save game state'
-            }
-        elif action == 'delete':
-            adventurer_name = params.get('adventurer_name')
-            success = delete_game_state(adventurer_name)
-            
-            return {
-                'success': success,
-                'message': f'Game state deleted for {adventurer_name}' if success else f'Failed to delete game state for {adventurer_name}'
-            }
-        elif action == 'cheat':
-            # Handle cheat action - instantly gives the player a sword
-            adventurer_name = params.get('adventurer_name')
-            game_state, blacksmith_state = load_game_state(adventurer_name)
-            
-            if not game_state:
-                # Create a new game state if one doesn't exist
-                game_state = GameState(
-                    adventurer_name=adventurer_name,
-                    current_location="start"
-                )
-            
-            # Give the player a sword
-            game_state.has_sword = True
-            game_state.sword_type = SwordType.REGULAR
-            
-            # Save the updated state (this will also track the sword metrics)
-            success = save_game_state(game_state, blacksmith_state)
-            
-            return {
-                'success': success,
-                'message': 'You cheated and got a sword. You feel guilty.',
-                'game_state': game_state.model_dump() if game_state else None,
-                'blacksmith_state': blacksmith_state.model_dump() if blacksmith_state else None
-            }
-        else:
+                # If no state exists, create a default one for new players
+                if not game_state:
+                    logger.info(f"Creating default state for new player: {adventurer_name}")
+                    with tracer.start_as_current_span("create_default_game_state") as default_span:
+                        default_span.set_attribute("adventurer_name", adventurer_name)
+                        game_state, blacksmith_state = create_default_game_state(adventurer_name)
+                
+                # Track sword metrics when loading state
+                if game_state:
+                    otel_metrics.track_sword_state(game_state)
+                    
+                return {
+                    'success': True,
+                    'message': 'Game state loaded successfully',
+                    'game_state': game_state.model_dump() if game_state else None,
+                    'blacksmith_state': blacksmith_state.model_dump() if blacksmith_state else None
+                }
+            elif action == 'save':
+                adventurer_name = params.get('adventurer_name')
+                game_state_data = params.get('game_state')
+                blacksmith_state_data = params.get('blacksmith_state')
+                
+                # Create GameState and BlacksmithState objects from the request data
+                game_state = GameState(**game_state_data) if game_state_data else None
+                blacksmith_state = BlacksmithState(**blacksmith_state_data) if blacksmith_state_data else None
+                
+                # Save to DynamoDB
+                success = save_game_state(game_state, blacksmith_state)
+                
+                return {
+                    'success': success,
+                    'message': 'Game state saved successfully' if success else 'Failed to save game state'
+                }
+            elif action == 'delete':
+                adventurer_name = params.get('adventurer_name')
+                success = delete_game_state(adventurer_name)
+                
+                return {
+                    'success': success,
+                    'message': f'Game state deleted for {adventurer_name}' if success else f'Failed to delete game state for {adventurer_name}'
+                }
+            elif action == 'cheat':
+                # Handle cheat action - instantly gives the player a sword
+                adventurer_name = params.get('adventurer_name')
+                game_state, blacksmith_state = load_game_state(adventurer_name)
+                
+                if not game_state:
+                    # Create a new game state if one doesn't exist
+                    game_state = GameState(
+                        adventurer_name=adventurer_name,
+                        current_location="start"
+                    )
+                
+                # Give the player a sword
+                game_state.has_sword = True
+                game_state.sword_type = SwordType.REGULAR
+                
+                # Save the updated state (this will also track the sword metrics)
+                success = save_game_state(game_state, blacksmith_state)
+                
+                return {
+                    'success': success,
+                    'message': 'You cheated and got a sword. You feel guilty.',
+                    'game_state': game_state.model_dump() if game_state else None,
+                    'blacksmith_state': blacksmith_state.model_dump() if blacksmith_state else None
+                }
+            else:
+                span.set_status(trace.StatusCode.ERROR, f"Unknown action: {action}")
+                return {
+                    'success': False,
+                    'message': f'Unknown action: {action}'
+                }
+        except Exception as e:
+            span.record_exception(e)
+            span.set_status(trace.StatusCode.ERROR, str(e))
+            logger.exception(f"Error processing {action} action")
             return {
                 'success': False,
-                'message': f'Unknown action: {action}'
+                'message': f'Error processing action: {str(e)}'
             }
-    except Exception as e:
-        logger.exception(f"Error processing game state action '{action}': {str(e)}")
-        return {
-            'success': False,
-            'message': f'Error processing request: {str(e)}'
-        }
 
 @logger.inject_lambda_context(correlation_id_path=correlation_paths.API_GATEWAY_REST)
 def lambda_handler(event: dict, context: LambdaContext) -> dict:
-    """Main Lambda handler"""
-    # Check if this is a direct Lambda invocation (not through API Gateway)
-    if 'httpMethod' not in event and 'action' in event:
-        logger.info(f"Direct Lambda invocation detected with action: {event['action']}")
-        # Add source context to logs if available
-        if 'source' in event:
-            logger.append_keys(source=event['source'])
-        elif 'source_function' in event:
-            logger.append_keys(source_function=event['source_function'])
-        
-        # Process the action
-        return process_game_state_action(event.get('action'), event)
+    """Lambda handler for all game state operations"""
+    # Extract trace context based on invocation type
+    headers = event.get('headers', {}) or {}
     
-    # Otherwise, handle as a normal API Gateway request
-    return app.resolve(event, context)
+    # Check for API Gateway vs direct Lambda invocation
+    if 'httpMethod' in event:
+        # For API Gateway requests, extract context from headers
+        extracted_context = extract(headers)
+    else:
+        # For direct Lambda invocations, extract context from the event payload itself
+        # This handles cases where one Lambda invokes another and injects context into the payload
+        extracted_context = extract(event)
+    
+    # Start a new span for the lambda handler with the extracted context
+    with tracer.start_as_current_span(
+        "lambda_handler", 
+        context=extracted_context,
+        kind=SpanKind.SERVER
+    ) as span:
+        try:
+            # Add event information as span attributes
+            span.set_attribute("service.name", service_name)
+            span.set_attribute("function.name", context.function_name)
+            span.set_attribute("cold_start", context.invoked_function_arn is not None)
+            
+            # Check if this is an API Gateway event, direct Lambda invocation, or an internal request
+            if 'httpMethod' in event and 'path' in event:
+                span.set_attribute("invocation.type", "api_gateway")
+                span.set_attribute("http.method", event.get('httpMethod', ''))
+                span.set_attribute("http.path", event.get('path', ''))
+                if 'requestContext' in event and 'identity' in event.get('requestContext', {}):
+                    span.set_attribute("client.ip", event.get('requestContext', {}).get('identity', {}).get('sourceIp', ''))
+                
+                # Handle API Gateway event - let the APIGatewayRestResolver handle it
+                return app.resolve(event, context)
+            else:
+                # Direct Lambda invocation or internal request
+                span.set_attribute("invocation.type", "direct")
+                logger.info("Direct Lambda invocation detected")
+                
+                # Get the action and parameters from the event
+                action = event.get('action', '')
+                
+                # Extract source function if provided
+                source_function = event.get('source_function', 'unknown')
+                span.set_attribute("source_function", source_function)
+                span.set_attribute("action", action)
+                
+                # Process the action and return the result
+                result = process_game_state_action(action, event)
+                return result
+                
+        except Exception as e:
+            span.record_exception(e)
+            span.set_status(trace.StatusCode.ERROR, str(e))
+            logger.exception(f"Error handling request: {str(e)}")
+            return {
+                'statusCode': 500,
+                'body': json.dumps({
+                    'error': str(e),
+                    'traceback': traceback.format_exc()
+                })
+            }
 
 def load_all_game_states() -> list:
     """Load all game states from DynamoDB"""

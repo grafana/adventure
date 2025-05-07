@@ -38,10 +38,8 @@ import json
 # Interval in seconds for exporting metrics periodically.
 INTERVAL_SEC = 10
 
-
 class CustomTracer:
     def __init__(self, service_name):
-        
         # Create the span exporter with the configuration
         exporter = OTLPSpanExporter()
         span_processor = BatchSpanProcessor(span_exporter=exporter)
@@ -132,7 +130,7 @@ class CustomLogFW:
                 resource=Resource.create(
                     {
                         "service.name": service_name,
-                        "service.instance.id": "instance-1"
+                        "service.instance.id": "game-play"
                     }
                 )
             )
@@ -157,22 +155,8 @@ class CustomLogFW:
 
         # Set the created LoggerProvider as the global logger provider.
         set_logger_provider(self.logger_provider)
-
-        # Get OTLP configuration from environment variables
-        otlp_config = get_otlp_config()
-
-        # Create an instance of OTLPLogExporter to export logs.
-        if os.environ.get("SETUP") == "docker":
-            docker_endpoint = "http://alloy:4318/v1/logs"
-            # For docker setup, keep the docker endpoint but add headers if available
-            exporter_config = {"endpoint": docker_endpoint}
-            if "headers" in otlp_config:
-                exporter_config["headers"] = otlp_config["headers"]
-            exporter = OTLPLogExporter(**exporter_config)
-            print(exporter._endpoint, flush=True)
-        else:
             # For regular setup, use the OTLP config from environment variables
-            exporter = OTLPLogExporter(**otlp_config)
+        exporter = OTLPLogExporter()
 
         # Add a BatchLogRecordProcessor to the logger provider.
         # This processor batches logs before sending them to the backend.
@@ -183,12 +167,5 @@ class CustomLogFW:
         # Create a LoggingHandler that integrates OpenTelemetry logging with the Python logging system.
         # Setting log level to NOTSET to capture all log levels.
         handler = LoggingHandler(level=logging.NOTSET, logger_provider=self.logger_provider)
-
-        # Log information about the configuration
-        otlp_info = {
-            "endpoint": otlp_config.get("endpoint", "default"),
-            "headers_present": bool(otlp_config.get("headers"))
-        }
-        print(f"Logging configured with OpenTelemetry. Config: {json.dumps(otlp_info)}")
 
         return handler

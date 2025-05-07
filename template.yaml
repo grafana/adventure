@@ -27,7 +27,6 @@ Globals:
         LOG_LEVEL: INFO
         GAME_STATE_TABLE: !Ref GameStateTable
         POWERTOOLS_METRICS_NAMESPACE: AdventureQuest
-        OTEL_PROPAGATORS: xray
         OPENTELEMETRY_COLLECTOR_CONFIG_URI: /var/task/collector.yaml
         GRAFANA_CLOUD_INSTANCE_ID: !Ref GrafanaCloudInstanceId
         GRAFANA_CLOUD_OTLP_ENDPOINT: !Ref GrafanaCloudOtlpEndpoint
@@ -63,7 +62,6 @@ Resources:
       Environment:
         Variables:
           GAME_STATE_TABLE: !Ref GameStateTable
-          OTEL_PROPAGATORS: xray
           OPENTELEMETRY_COLLECTOR_CONFIG_URI: /var/task/collector.yaml
           GRAFANA_CLOUD_INSTANCE_ID: !Ref GrafanaCloudInstanceId
           GRAFANA_CLOUD_OTLP_ENDPOINT: !Ref GrafanaCloudOtlpEndpoint
@@ -110,7 +108,6 @@ Resources:
       Environment:
         Variables:
           GAME_STATE_FUNCTION_NAME: !Ref GameStateFunction
-          OTEL_PROPAGATORS: xray
           OPENTELEMETRY_COLLECTOR_CONFIG_URI: /var/task/collector.yaml
           GRAFANA_CLOUD_INSTANCE_ID: !Ref GrafanaCloudInstanceId
           GRAFANA_CLOUD_OTLP_ENDPOINT: !Ref GrafanaCloudOtlpEndpoint
@@ -143,7 +140,6 @@ Resources:
       Environment:
         Variables:
           GAME_STATE_FUNCTION_NAME: !Ref GameStateFunction
-          OTEL_PROPAGATORS: xray
           OPENTELEMETRY_COLLECTOR_CONFIG_URI: /var/task/collector.yaml
           GRAFANA_CLOUD_INSTANCE_ID: !Ref GrafanaCloudInstanceId
           GRAFANA_CLOUD_OTLP_ENDPOINT: !Ref GrafanaCloudOtlpEndpoint
@@ -176,7 +172,6 @@ Resources:
       Environment:
         Variables:
           GAME_STATE_FUNCTION_NAME: !Ref GameStateFunction
-          OTEL_PROPAGATORS: xray
           OPENTELEMETRY_COLLECTOR_CONFIG_URI: /var/task/collector.yaml
           GRAFANA_CLOUD_INSTANCE_ID: !Ref GrafanaCloudInstanceId
           GRAFANA_CLOUD_OTLP_ENDPOINT: !Ref GrafanaCloudOtlpEndpoint
@@ -209,7 +204,6 @@ Resources:
       Environment:
         Variables:
           GAME_STATE_FUNCTION_NAME: !Ref GameStateFunction
-          OTEL_PROPAGATORS: xray
           OPENTELEMETRY_COLLECTOR_CONFIG_URI: /var/task/collector.yaml
           GRAFANA_CLOUD_INSTANCE_ID: !Ref GrafanaCloudInstanceId
           GRAFANA_CLOUD_OTLP_ENDPOINT: !Ref GrafanaCloudOtlpEndpoint
@@ -242,7 +236,6 @@ Resources:
       Environment:
         Variables:
           GAME_STATE_FUNCTION_NAME: !Ref GameStateFunction
-          OTEL_PROPAGATORS: xray
           OPENTELEMETRY_COLLECTOR_CONFIG_URI: /var/task/collector.yaml
           GRAFANA_CLOUD_INSTANCE_ID: !Ref GrafanaCloudInstanceId
           GRAFANA_CLOUD_OTLP_ENDPOINT: !Ref GrafanaCloudOtlpEndpoint

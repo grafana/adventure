@@ -21,6 +21,7 @@ extensions:
       username: "${env:GRAFANA_CLOUD_INSTANCE_ID}"
       password: "${env:GRAFANA_CLOUD_API_KEY:-${secretsmanager:${env:GRAFANA_CLOUD_API_KEY_ARN}}}"
 
+
 processors:
   batch:
   decouple:
@@ -29,14 +30,14 @@ service:
   extensions: [basicauth/grafana_cloud]
   pipelines:
     traces:
-      receivers: [telemetryapi,otlp]
-      processors: [batch,decouple]
+      receivers: [otlp]
+      processors: []
       exporters: [otlphttp/grafana_cloud]
     logs:
       receivers: [telemetryapi,otlp]
-      processors: []
+      processors: [batch,decouple]
       exporters: [otlphttp/grafana_cloud]
     metrics:
       receivers: [otlp]
-      processors: [batch,decouple]
+      processors: []
       exporters: [otlphttp/grafana_cloud]

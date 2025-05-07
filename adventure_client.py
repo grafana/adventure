@@ -2,7 +2,9 @@ import os
 import json
 import requests
 from typing import Optional, Dict, Any, Tuple
-from otel import CustomTracer
+from otel import CustomTracer, CustomLogFW
+from opentelemetry.propagate import inject
+import logging
 
 
 
@@ -23,17 +25,38 @@ class AdventureClient:
         self.current_actions = []
         self.service_name = "adventure-client"  
         ct = CustomTracer(service_name=self.service_name)
+        cl = CustomLogFW(service_name=self.service_name)
+        handler = cl.setup_logging()
+        logging.getLogger().addHandler(handler)
+        logging.getLogger().setLevel(logging.INFO)
         self.trace = ct.get_trace()
         self.tracer = self.trace.get_tracer(self.service_name)
         
         self.setup_game()
 
+    # Helper function to inject trace context into headers
+    def _make_request_with_trace(self, method, url, json_data=None):
+        """Make HTTP request with trace context propagated in headers."""
+        # Create headers dictionary to inject trace context into
+        headers = {"Content-Type": "application/json"}
+        
+        # Inject the current trace context into headers
+        inject(headers)
+        
+        # Make the request with the trace context headers
+        if method.lower() == 'get':
+            return requests.get(url, headers=headers)
+        elif method.lower() == 'post':
+            return requests.post(url, json=json_data, headers=headers)
+        else:
+            raise ValueError(f"Unsupported method: {method}")
         
     def check_for_saved_game(self, adventurer_name: str) -> Tuple[Optional[Dict], Optional[Dict]]:
         """Check if there's a saved game for this adventurer"""
         try:
-            # Make API call to check for saved game
-            response = requests.get(
+            # Make API call to check for saved game with trace context
+            response = self._make_request_with_trace(
+                'get',
                 f"{self.api_url}/game-state/{adventurer_name}"
             )
             
@@ -174,9 +197,11 @@ class AdventureClient:
                 "blacksmith_state": self.blacksmith_state
             }
             
-            response = requests.post(
+            # Use the helper method to make request with trace context propagation
+            response = self._make_request_with_trace(
+                'post',
                 f"{self.api_url}/blacksmith",
-                json=request
+                json_data=request
             )
             
             if response.status_code == 200:
@@ -222,9 +247,11 @@ class AdventureClient:
                 "game_state": self.game_state
             }
             
-            response = requests.post(
+            # Use the helper method to make request with trace context propagation
+            response = self._make_request_with_trace(
+                'post',
                 f"{self.api_url}/mysterious-man",
-                json=request
+                json_data=request
             )
             
             if response.status_code == 200:
@@ -265,9 +292,11 @@ class AdventureClient:
                 "game_state": self.game_state
             }
             
-            response = requests.post(
+            # Use the helper method to make request with trace context propagation
+            response = self._make_request_with_trace(
+                'post',
                 f"{self.api_url}/wizard",
-                json=request
+                json_data=request
             )
             
             if response.status_code == 200:
@@ -325,9 +354,11 @@ class AdventureClient:
                 "game_state": self.game_state
             }
             
-            response = requests.post(
+            # Use the helper method to make request with trace context propagation
+            response = self._make_request_with_trace(
+                'post',
                 f"{self.api_url}/chapel",
-                json=request
+                json_data=request
             )
             
             if response.status_code == 200:
@@ -367,9 +398,11 @@ class AdventureClient:
                 "game_state": self.game_state
             }
             
-            response = requests.post(
+            # Use the helper method to make request with trace context propagation
+            response = self._make_request_with_trace(
+                'post',
                 f"{self.api_url}/quest-giver",
-                json=request
+                json_data=request
             )
             
             if response.status_code == 200:
@@ -401,9 +434,11 @@ class AdventureClient:
                 "game_state": self.game_state
             }
             
-            response = requests.post(
+            # Use the helper method to make request with trace context propagation
+            response = self._make_request_with_trace(
+                'post',
                 f"{self.api_url}/wizard",
-                json=request
+                json_data=request
             )
             
             if response.status_code == 200:
@@ -432,10 +467,11 @@ class AdventureClient:
     def save_game(self) -> bool:
         """Save the current game state"""
         try:
-            # Make API call to save game
-            response = requests.post(
+            # Make API call to save game with trace context
+            response = self._make_request_with_trace(
+                'post',
                 f"{self.api_url}/game-state",
-                json={
+                json_data={
                     "game_state": self.game_state,
                     "blacksmith_state": self.blacksmith_state
                 }
@@ -468,6 +504,7 @@ class AdventureClient:
             action_index = int(command) - 1
             if 0 <= action_index < len(self.current_actions):
                 command = self.current_actions[action_index]
+                logging.info(command)
         except ValueError:
             pass
         
@@ -529,6 +566,7 @@ class AdventureClient:
             
         if result:
             print(f"\n{Colors.GREEN}{result}{Colors.RESET}")
+            logging.info(result)
             self.display_current_location()
             return True
                 

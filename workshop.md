@@ -23,7 +23,7 @@ While playing, it's possible you spot an easter egg, so keep an eye for it as it
 
 And since this is not just for fun (or is it?), we have some questions for you to answer while playing the game. Here they are:
 
-1. What metrics are useful to play the game? While using Grafana to visualize how you are doing with the game, you can use the Grafana provided dashboard `Adventure Game Dashboard` to observe what is going on.
+1. What metrics are useful to play the game? While using Grafana to visualize how you are doing with the game, you can use the Grafana-provided dashboard `Adventure Game Dashboard` to observe what is going on.
 
     <details><summary>Answer</summary>
     <p>
@@ -37,22 +37,21 @@ And since this is not just for fun (or is it?), we have some questions for you t
     </p>
     </details>
 
-2. If we accept the offer, it might seem like it's a good one from what the game responds. What useful log appears when we accept the offer from the mysterious man in the village? Can we have a look at the logs in our Grafana dashboard to make sure that the mysterioys man has actually helped us in our quest?  What do we see in the metrics that also points to an unexpected outcome of acceping the offer?
+2. If we accept the offer, it might seem like it's a good one from what the game responds. What useful log appears when we take the offer from the mysterious man in the village? Can we review the logs in our Grafana dashboard to confirm that the mysterious man has actually assisted us in our quest?  What do we see in the metrics that also point to an unexpected outcome of accepting the offer?
 
     <details><summary>Answer</summary>
     <p>
     When we accept the offer from the mysterious man, what we see in the game is:
 
-    ![Game view](./img/workshop/mysterious-man-view.png)
+    ![Game view](./img/workshop/mysterious-man-game-view.png)
 
     If we have a look at the logs, though, we can see a `warn` log:
 
     ![Log](./img/workshop/mysterious-man-log.png)
 
-    An in our metrics, we would see we now have an evil sword:
+    And in our metrics, we would see we now have an evil sword:
 
     ![Evil Sword](./img/workshop/mysterious-man-evil-sword.png)
-
 
     </p>
     </details>
@@ -66,7 +65,7 @@ And since this is not just for fun (or is it?), we have some questions for you t
     ![Trace Leaderboard](./img/workshop/leaderboard.png)
 
 
-    Clicking on each game, we can see the actions took as spans, and the timings for each span.
+    Clicking on each game, we can see the actions taken as spans and the timings for each span.
 
     ![Trace Leaderboard Detail](./img/workshop/leaderboard-trace.png)
 
@@ -83,15 +82,15 @@ And since this is not just for fun (or is it?), we have some questions for you t
 
     ![Trace Metrics Exemplar](./img/workshop/exemplar.png)
 
-    Any of those open a window with the associated exemplar:
+    Any of those opens a window with the associated exemplar:
 
     ![Trace Metrics Exemplar Open](./img/workshop/exemplar-open.png)
 
-    And you can click the button `Query with tempo` to go to the full trace and the span for that metric. 
+    You can click the `Query with tempo` button to view the full trace and the span for that metric. 
 
     ![Trace Detail](./img/workshop/exemplar-trace.png)
 
-    In the example above, we would be able to see that the sword became enchanted/evil, when the player chose to accept the mysterious man offer.
+    In the example above, we would be able to see that the sword became enchanted/evil when the player chose to accept the mysterious man's offer.
 
     </p>
     </details>
@@ -101,7 +100,7 @@ And since this is not just for fun (or is it?), we have some questions for you t
     <details><summary>Answer</summary>
     <p>
 
-    Similarly to the previous metrics exemplars, it is possible to navigate from a log to its traces. In the log pane, choose a log, for example, the one where we have the priest in the church look at our swork:
+    Similarly to the previous metrics exemplars, it is possible to navigate from a log to its traces. In the log pane, choose a log, for example, the one where we have the priest in the church look at our work:
 
     ![Logs to traces](./img/workshop/log-priest.png)
 
@@ -112,12 +111,12 @@ And since this is not just for fun (or is it?), we have some questions for you t
     </p>
     </details>
 
-6. How do we navigate telemetry signals in Grafana without using [logQL](https://grafana.com/docs/loki/latest/query/), [promQL](https://grafana.com/blog/2020/02/04/introduction-to-promql-the-prometheus-query-language/) or [traceQL](https://grafana.com/docs/tempo/latest/traceql/)? How can we explore the collected metrics, logs or traces without using the [Grafana Explore](https://grafana.com/docs/grafana/latest/explore/) menu?
+6. How do we navigate telemetry signals in Grafana without using [logQL](https://grafana.com/docs/loki/latest/query/), [promQL](https://grafana.com/blog/2020/02/04/introduction-to-promql-the-prometheus-query-language/), or [traceQL](https://grafana.com/docs/tempo/latest/traceql/)? How can we explore the collected metrics, logs, or traces without using the [Grafana Explore](https://grafana.com/docs/grafana/latest/explore/) menu?
 
     <details><summary>Answer</summary>
     <p>
 
-    Grafana simplified logs, metrics, traces and profiles exploration with the [drilldown suite](https://grafana.com/docs/grafana/latest/explore/simplified-exploration). 
+    Grafana simplified logs, metrics, traces, and profiles exploration with the [drilldown suite](https://grafana.com/docs/grafana/latest/explore/simplified-exploration). 
     
     In our case, we can select the Grafana menu [`Drilldown - Metrics`](https://grafana.com/docs/grafana/latest/explore/simplified-exploration/metrics/) to check the instrumented metrics in the game:  
 
@@ -134,7 +133,7 @@ And since this is not just for fun (or is it?), we have some questions for you t
     </p>
     </details>
 
-7. Did we have any useful alerts set up in Grafana that could have prevented a melt-down?
+7. Did we have any useful alerts set up in Grafana that could have prevented a meltdown?
 
     <details><summary>Answer</summary>
     <p>
@@ -147,18 +146,18 @@ And since this is not just for fun (or is it?), we have some questions for you t
 
     ![Alert recovers](./img/workshop/alert-ok.png)
 
-    And we can check those alert configuration going to the `Alerting - Alert rules` menu.
+    And we can check the alerts' configuration by going to the `Alerting - Alert rules` menu.
 
     ![Alert Rules](./img/workshop/alert-rules.png)
 
-    Where we could check the history clicking on the `Show state history` button.
+    We could check the history by clicking on the `Show state history` button.
 
     ![Alert History](./img/workshop/alert-history.png)
  
     </p>
     </details>
 
-8. Did anyone spot an Easter egg in the `Adventure Game Dashboard` logs view? Are you able to decode the message to get your exclusive badge / prize?
+8. Did anyone spot an Easter egg in the `Adventure Game Dashboard` logs view? Can you decipher the message to receive your exclusive badge / prize?
 
     <details><summary>Answer</summary>
     <p>
@@ -167,7 +166,7 @@ And since this is not just for fun (or is it?), we have some questions for you t
 
     ![Easter Egg](./img/workshop/easter-egg.png)
 
-    And if you can, can you decode the secret message? If so, show your log to the instructor and you might get a prize, alonside an exclusive [community forum](https://community.grafana.com/) badge for quest adventurers.
+    And if you can, can you decode the secret message? If so, show your log to the instructor and you might get a prize, alongside an exclusive [community forum](https://community.grafana.com/) badge for quest adventurers.
  
     </p>
     </details>
@@ -175,7 +174,7 @@ And since this is not just for fun (or is it?), we have some questions for you t
 
 ## 3. Don't just play, add a new metric
 
-Now that you mastered the game, it's time to add a new metric. We propose adding a cheat counter, to show how many times a user cheated on the game, but you can be creative and add another metric you find useful and we missed, or other logs. And why not, you can attempt to add a new telemetry signal, [profiles](https://grafana.com/oss/pyroscope/), implementing a [profiling challenge](https://github.com/grafana/adventure/issues/8).
+Now that you have mastered the game, it's time to add a new metric. We propose adding a cheat counter to display the number of times a user cheats in the game. However, you can also be creative and add another metric that you find helpful, which we may have missed, or other logs. And why not? You can attempt to add a new telemetry signal, [profiles](https://grafana.com/oss/pyroscope/), implementing a [profiling challenge](https://github.com/grafana/adventure/issues/8).
 
 If you decide to add a `cheat attempts` metric, we suggest looking at how we created the other counters (sword counts) and having a look at the [OpenTelemetry specifications for metrics API](https://opentelemetry.io/docs/specs/otel/metrics/api). Once you implement the new metric, add a Grafana panel to our `Adventure Game Dashboard`. You'll need to first add the metric at [main.py](../main.py), and then add the Grafana panel to the dashboard. It would look like:
 
@@ -221,11 +220,11 @@ class AdventureGame:
 +         self.cheat_count += 1
 +         self.cheat_counter.add(1) 
         self.sword_counter.add(1)  # Increment sword counter when cheating
-        return "You should continue north you cheater."
+        return "You should continue north, you cheater."
 
 ```
 
-To add a cheat attempt counter, a quick way is to edit the Grafana dashboard, and `Duplicate` one of the panels (e.g. `Evil Sword`), and then changing the metric name to the one you have created for cheat attempts.
+To add a cheat attempt counter, a quick way is to edit the Grafana dashboard, and `Duplicate` one of the panels (e.g., `Evil Sword`), and then change the metric name to the one you have created for cheat attempts.
 
 ![Duplicate Panel](./img/workshop/duplicate-panel.png)
 
@@ -234,9 +233,9 @@ To add a cheat attempt counter, a quick way is to edit the Grafana dashboard, an
 
 ## 4. I want more games!
 
-The quest adventure is great to learn logs and metrics, and we felt we needed to build another game to showcase traces: [Learn OpenTelemetry tracing through a grand strategy game: introducing Game of Traces](https://grafana.com/blog/2025/08/11/learn-opentelemetry-tracing-through-a-grand-strategy-game-introducing-game-of-traces/). 
+The quest adventure is excellent to learn logs and metrics, and we felt we needed to build another game to showcase traces: [Learn OpenTelemetry tracing through a grand strategy game: introducing Game of Traces](https://grafana.com/blog/2025/08/11/learn-opentelemetry-tracing-through-a-grand-strategy-game-introducing-game-of-traces/). 
 
-You can play this game similarly, either run it localy with docker, following the [instructions for the game of tracing](https://github.com/grafana/alloy-scenarios/blob/main/game-of-tracing/README.md#running-the-demo), or use our [killercoda playground](https://killercoda.com/grafana-labs/course/workshops/game-of-traces) from your browser. 
+You can play this game similarly, either run it locally with Docker, following the [instructions for the game of tracing](https://github.com/grafana/alloy-scenarios/blob/main/game-of-tracing/README.md#running-the-demo), or use our [killercoda playground](https://killercoda.com/grafana-labs/course/workshops/game-of-traces) from your browser. 
 
 ![Victory](./img/workshop/game-of-tracing-1.png)
 ![War Map](./img/workshop/game-of-tracing-2.png)

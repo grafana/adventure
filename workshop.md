@@ -1,12 +1,12 @@
 # Workshop Instructions
 
-If you are running the quest adventure as a hands-on workshop, we propose the following exercises.
+If you are running the quest adventure as a hands-on workshop, we suggest the following workflow.
 
-## 1. Set-up your environment
+## 1. Set up your environment
 
-If you have git, docker and docker-compose in your laptop, you can setup to run the workshop locally. Follow these [instructions](./README.md#run-with-docker) and check [how to play the game](./README.md#gameplay-instructions).
+If you have git, Docker, and Docker Compose on your laptop, you can set up to run the workshop locally. Follow these [instructions](./README.md#run-with-docker) and check [how to play the game](./README.md#gameplay-instructions).
 
-Otherwise, you can play the game in your browser with a [killercoda session](https://killercoda.com/grafana-labs/course/workshops/adventure) - it lasts 1 hour with a free-tier account. To play the game in your browser, follow these [instructions](./killercoda-sandbox.md).
+Otherwise, you can play the game in your browser with a [killercoda session](https://killercoda.com/grafana-labs/course/workshops/adventure) - it lasts 1 hour with a free-tier account. To play the game in your browser, follow the instructions in [this document](./killercoda-sandbox.md).
 
 ## 2. Explore Observability tools while playing
 
@@ -19,11 +19,11 @@ The goal of the game is to save the town, for that:
 
 And you'll realise observing the game can actually help you make smarter decisions and save the town faster.
 
-While playing, it's possible you spot an easter egg, so keep an eye for it as it has an exclusive badge for you, or, if doing the workshop in-person, it might get you some Grafana swag. Ask your instructor/s!
+While playing, you may spot an easter egg, so keep an eye for it as it has an exclusive badge for you, or, if doing the workshop in-person, it might get you some Grafana swag. Ask your instructor/s!
 
 And since this is not just for fun (or is it?), we have some questions for you to answer while playing the game. Here they are:
 
-1. What metrics are useful to play the game? While using Grafana to visualize how you are doing with the game, you can use the Grafana-provided dashboard `Adventure Game Dashboard` to observe what is going on.
+1. **What metrics are helpful to play the game?** While using Grafana to visualize how you are doing with the game, you can use the Grafana-provided dashboard `Adventure Game Dashboard` to observe what is going on.
 
     <details><summary>Answer</summary>
     <p>
@@ -37,7 +37,7 @@ And since this is not just for fun (or is it?), we have some questions for you t
     </p>
     </details>
 
-2. If we accept the offer, it might seem like it's a good one from what the game responds. What useful log appears when we take the offer from the mysterious man in the village? Can we review the logs in our Grafana dashboard to confirm that the mysterious man has actually assisted us in our quest?  What do we see in the metrics that also point to an unexpected outcome of accepting the offer?
+2. If we accept the offer, it might seem like it's a good one from what the game responds. **What useful log appears when we take the offer from the mysterious man in the village?** Can we review the logs in our Grafana dashboard to confirm that the mysterious man has actually assisted us in our quest?  **What do we see in the metrics that also point to an unexpected outcome of accepting the offer?**
 
     <details><summary>Answer</summary>
     <p>
@@ -56,7 +56,7 @@ And since this is not just for fun (or is it?), we have some questions for you t
     </p>
     </details>
 
-3. What dashboard allows us to view traces in the game (hint: it's the other provisioned Grafana dashboard)
+3. **What dashboard allows us to view traces in the game (hint: it's the other provisioned Grafana dashboard)?**
 
     <details><summary>Answer</summary>
     <p>
@@ -73,7 +73,7 @@ And since this is not just for fun (or is it?), we have some questions for you t
     </details>
 
 
-4. Where can we find an [exemplar](https://grafana.com/docs/grafana/latest/fundamentals/exemplars) in the `Adventure Game Dashboard` and what can we view using it?
+4. **Where can we find an [exemplar](https://grafana.com/docs/grafana/latest/fundamentals/exemplars) in the `Adventure Game Dashboard` and what can we view using it?**
 
     <details><summary>Answer</summary>
     <p>
@@ -95,7 +95,7 @@ And since this is not just for fun (or is it?), we have some questions for you t
     </p>
     </details>
 
-5. How do we navigate from logs to traces in the `Adventure Game Dashboard`?
+5. **How do we navigate from logs to traces in the `Adventure Game Dashboard`?**
 
     <details><summary>Answer</summary>
     <p>
@@ -111,7 +111,7 @@ And since this is not just for fun (or is it?), we have some questions for you t
     </p>
     </details>
 
-6. How do we navigate telemetry signals in Grafana without using [logQL](https://grafana.com/docs/loki/latest/query/), [promQL](https://grafana.com/blog/2020/02/04/introduction-to-promql-the-prometheus-query-language/), or [traceQL](https://grafana.com/docs/tempo/latest/traceql/)? How can we explore the collected metrics, logs, or traces without using the [Grafana Explore](https://grafana.com/docs/grafana/latest/explore/) menu?
+6. **How do we navigate telemetry signals in Grafana without using [logQL](https://grafana.com/docs/loki/latest/query/), [promQL](https://grafana.com/blog/2020/02/04/introduction-to-promql-the-prometheus-query-language/), or [traceQL](https://grafana.com/docs/tempo/latest/traceql/)?** How can we explore the collected metrics, logs, or traces without using the [Grafana Explore](https://grafana.com/docs/grafana/latest/explore/) menu?
 
     <details><summary>Answer</summary>
     <p>
@@ -133,7 +133,7 @@ And since this is not just for fun (or is it?), we have some questions for you t
     </p>
     </details>
 
-7. Did we have any useful alerts set up in Grafana that could have prevented a meltdown?
+7. **Did we have any useful alerts set up in Grafana that could have prevented a meltdown?**
 
     <details><summary>Answer</summary>
     <p>
@@ -157,7 +157,7 @@ And since this is not just for fun (or is it?), we have some questions for you t
     </p>
     </details>
 
-8. Did anyone spot an Easter egg in the `Adventure Game Dashboard` logs view? Can you decipher the message to receive your exclusive badge / prize?
+8. **Did anyone spot an Easter egg in the `Adventure Game Dashboard` logs view? Can you decipher the message to receive your exclusive badge/prize?**
 
     <details><summary>Answer</summary>
     <p>

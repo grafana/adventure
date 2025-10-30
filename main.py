@@ -201,7 +201,7 @@ class AdventureGame:
     def rebuild_blacksmith(self):
         if self.has_box:
             logging.info("While rebuilding the blacksmith, amongst the ashes you find the burnt remains of the decorative box. Laying beside it is a glowing, unburnt, piece of parchment which reads: 'Congratulations, Adventurer!'. Below it is a long cryptic looking message.")
-            logging.info("U2VuZCB0aGUgcGhyYXNlICJJIGZvdW5kIHRoZSBzZWNyZXQgd2l0aCBvYnNlcnZhYmlsaXR5ISIgdG8gVG9tIEdsZW5uIG9yIEpheSBDbGlmZm9yZCBhdCBodHRwczovL3NsYWNrLmdyYWZhbmEuY29tIGZvciB5b3VyIHJld2FyZC4=")
+            logging.info("U2VuZCB0aGUgcGhyYXNlICJJIGZvdW5kIHRoZSBzZWNyZXQgd2l0aCBvYnNlcnZhYmlsaXR5ISIgdG8gSW1tYSBWYWxscyBvciBFd2EgTWFnaWVyYSBhdCBodHRwczovL3NsYWNrLmdyYWZhbmEuY29tIGZvciBhbiBleGNsdXNpdmUgR3JhZmFuYSBmb3J1bSBiYWRnZSB5b3UgY2FuIHdlYXIgYXQgaHR0cHM6Ly9jb21tdW5pdHkuZ3JhZmFuYS5jb20v=")
         
         self.blacksmith_burned_down = False
         self.cool_forge()

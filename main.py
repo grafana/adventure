@@ -442,9 +442,9 @@ class AdventureGame:
                     return "You can't do that right now."
                 else:
                     if "effect" in action:
-                        return f"{Colors.GREEN}{action["message"]}\n{action["effect"]()}{Colors.RESET}\n{self.list_actions()}"
+                        return f"{Colors.GREEN}{action['message']}\n{action['effect']()}{Colors.RESET}\n{self.list_actions()}"
                     else:
-                        return f"{Colors.GREEN}{action["message"]}{Colors.RESET}\n{self.list_actions()}"
+                        return f"{Colors.GREEN}{action['message']}{Colors.RESET}\n{self.list_actions()}"
             else:
                 return "You can't do that right now."
         else:
@@ -461,6 +461,9 @@ class AdventureGame:
         logging.info("Welcome to your text adventure! Type 'quit' to exit.")
         print(f"{Colors.GREEN}{self.here()}{Colors.RESET}")
         with self.tracer.start_as_current_span(self.adventurer_name, attributes={"adventurer": self.adventurer_name}) as journey_span:
+            # Start with the journey span as the parent context
+            parent_span = journey_span
+            
             while self.game_active:
                 playerInput = input("> ")
 
@@ -476,24 +479,31 @@ class AdventureGame:
 
                 logging.info(f"Action by {self.adventurer_name}: " + command)
 
-                # Create a span for each action taken by the player, with location attribute added
-                with self.tracer.start_as_current_span(
-                    f"action: {command}",
-                    attributes={
-                        "adventurer": self.adventurer_name,
-                        "location": self.current_location  # Adding location attribute to provide more context
-                    }
-                ) as action_span:
-                    response = self.process_command(command)
-                    print(f"{response}")
-                    logging.info(response)
+                # Create a span for each action as a child of the previous action
+                # This creates a nested chain showing the path through the game
+                with self.trace.use_span(parent_span, end_on_exit=False):
+                    action_span = self.tracer.start_span(
+                        f"action: {command}",
+                        attributes={
+                            "adventurer": self.adventurer_name,
+                            "location": self.current_location  # Adding location attribute to provide more context
+                        }
+                    )
+                    
+                    with self.trace.use_span(action_span, end_on_exit=True):
+                        response = self.process_command(command)
+                        print(f"{response}")
+                        logging.info(response)
 
-                    # Check if the game has ended, and if so, break out of the loop
-                    if not self.game_active:
-                        journey_span.add_event("Adventure ended")
-                        action_span.add_event(f"{self.adventurer_name} completed the adventure.")
-                        action_span.set_status(Status(StatusCode.OK))
-                        break
+                        # Check if the game has ended, and if so, break out of the loop
+                        if not self.game_active:
+                            journey_span.add_event("Adventure ended")
+                            action_span.add_event(f"{self.adventurer_name} completed the adventure.")
+                            action_span.set_status(Status(StatusCode.OK))
+                            break
+                    
+                    # Make this action span the parent for the next action
+                    parent_span = action_span
             
             # Ask if the user wants to restart after the adventure has ended
         restart_command = input("Would you like to restart the adventure? (yes/no): ").strip().lower()

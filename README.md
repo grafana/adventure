@@ -153,6 +153,17 @@ Quest World runs as a python application our recommended way to install it is to
    python main.py
    ```
 
+### Localization (GNU gettext)
+
+The game uses GNU gettext for translations. User-visible strings are in `main.py` wrapped with `_()`. Locale data lives under `locale/`.
+
+- **Run in another language**: set `LANGUAGE` or `LANG` (e.g. `LANGUAGE=fr python main.py`).
+- **Extract strings** (after adding or changing text): `make extract` — updates `locale/adventure.pot`.
+- **Add a new language** (e.g. French): `make init-fr` creates `locale/fr/LC_MESSAGES/adventure.po`. Edit the `msgstr` entries, then run `make compile`.
+- **Update existing .po files** from the template: `make update` then `make compile`.
+
+Requires the gettext tools (e.g. `brew install gettext` on macOS). In-game commands (e.g. `go to town`, `quit`) stay in English so parsing remains consistent across locales.
+
 <!-- INTERACTIVE page step1.md END -->
 
 <!-- INTERACTIVE page step2.md START -->

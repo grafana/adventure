@@ -1,0 +1,472 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the adventure package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: adventure 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-18 22:56+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: main.py:23
+msgid "accept his offer"
+msgstr ""
+
+#: main.py:24
+msgid "accept quest"
+msgstr ""
+
+#: main.py:25
+msgid "blacksmith"
+msgstr ""
+
+#: main.py:26
+msgid "chapel"
+msgstr ""
+
+#: main.py:27
+msgid "check sword"
+msgstr ""
+
+#: main.py:28
+msgid "cheat"
+msgstr ""
+
+#: main.py:29
+msgid "cool forge"
+msgstr ""
+
+#: main.py:30
+msgid "decline his offer"
+msgstr ""
+
+#: main.py:31
+msgid "exit the cave"
+msgstr ""
+
+#: main.py:32
+msgid "go back"
+msgstr ""
+
+#: main.py:33
+msgid "go east"
+msgstr ""
+
+#: main.py:34
+msgid "go to forest"
+msgstr ""
+
+#: main.py:35
+msgid "go to town"
+msgstr ""
+
+#: main.py:36
+msgid "go towards light"
+msgstr ""
+
+#: main.py:37
+msgid "heat forge"
+msgstr ""
+
+#: main.py:38
+msgid "kill him"
+msgstr ""
+
+#: main.py:39
+msgid "look around"
+msgstr ""
+
+#: main.py:40
+msgid "look at sword"
+msgstr ""
+
+#: main.py:41
+msgid "mysterious man"
+msgstr ""
+
+#: main.py:42
+msgid "pray"
+msgstr ""
+
+#: main.py:43
+msgid "quest giver"
+msgstr ""
+
+#: main.py:44
+msgid "rebuild blacksmith"
+msgstr ""
+
+#: main.py:45
+msgid "request sword"
+msgstr ""
+
+#: main.py:46
+msgid "take the box"
+msgstr ""
+
+#: main.py:47
+msgid "wizard"
+msgstr ""
+
+#: main.py:56
+msgid "Enter your name, brave adventurer: "
+msgstr ""
+
+#: main.py:117
+msgid ""
+"You are at the beginning of your adventure. There's a path leading north "
+"towards a town, and another path leading east towards a forest."
+msgstr ""
+
+#: main.py:121
+msgid "You cheat and get a sword. You feel guilty"
+msgstr ""
+
+#: main.py:125
+msgid ""
+"You are in a dark forest. The trees are tall and the air is thick, you can "
+"make out a faint trail heading further east."
+msgstr ""
+
+#: main.py:132
+msgid ""
+"You enter a dark cave at the end of the trail. The air is cold and damp. You "
+"see a faint light at the end of the cave."
+msgstr ""
+
+#: main.py:139
+msgid ""
+"You find a treasure chest at the end of the cave. Inside is a small "
+"decorative wooden box with no visible way of opening it."
+msgstr ""
+
+#: main.py:141
+msgid "You take the box and place it in your pocket."
+msgstr ""
+
+#: main.py:142
+msgid ""
+"You retrace your steps and go back to where you first started your adventure"
+msgstr ""
+
+#: main.py:146
+msgid "You are at the blacksmith's forge. The blacksmith is busy working."
+msgstr ""
+
+#: main.py:149
+msgid "You ask the blacksmith to forge you a new sword."
+msgstr ""
+
+#: main.py:154
+msgid "You pour water on the forge. The coals sizzle."
+msgstr ""
+
+#: main.py:159
+msgid "You add more coal to the forge, increasing its heat."
+msgstr ""
+
+#: main.py:164
+msgid "You check if the sword is ready."
+msgstr ""
+
+#: main.py:173
+msgid ""
+"You are in a bustling town. People are going about their business. You see a "
+"blacksmith, a mysterious man wandering the streets, a quest giver, and a "
+"chapel."
+msgstr ""
+
+#: main.py:176
+msgid "You help the town rebuild the blacksmith."
+msgstr ""
+
+#: main.py:184
+msgid "You meet a mysterious man. He offers to enhance your sword with magic."
+msgstr ""
+
+#: main.py:186
+msgid "A great choice indeed. Your sword is now enchanted with great power."
+msgstr ""
+
+#: main.py:187
+msgid "You will not get another chance. ACCEPT MY OFFER!"
+msgstr ""
+
+#: main.py:192
+msgid "You meet a wizard. He yells 'Are you here to kill me?!'"
+msgstr ""
+
+#: main.py:194
+msgid "You attempt to kill the wizard."
+msgstr ""
+
+#: main.py:199
+msgid ""
+"You meet a quest giver. He offers you a quest to defeat the evil wizard."
+msgstr ""
+
+#: main.py:201
+msgid "You tell the quest giver you would like to accept..."
+msgstr ""
+
+#: main.py:206
+msgid "You enter the chapel. The priest greets you warmly."
+msgstr ""
+
+#: main.py:208
+msgid "The priest looks at your sword"
+msgstr ""
+
+#: main.py:209
+msgid "You pray for guidance."
+msgstr ""
+
+#: main.py:217
+msgid "You already have the box."
+msgstr ""
+
+#: main.py:220
+msgid "You hear a slight hum coming from the box as you touch it."
+msgstr ""
+
+#: main.py:227
+msgid ""
+"As you enter the blacksmith you trip over a small stone slab. You feel "
+"lighter somehow."
+msgstr ""
+
+#: main.py:237
+msgid ""
+"While rebuilding the blacksmith, amongst the ashes you find the burnt "
+"remains of the decorative box. Laying beside it is a glowing, unburnt, piece "
+"of parchment which reads: 'Congratulations, Adventurer!'. Below it is a long "
+"cryptic looking message."
+msgstr ""
+
+#: main.py:242
+msgid "You help the town rebuild the blacksmith. The blacksmith is grateful."
+msgstr ""
+
+#: main.py:294
+msgid ""
+"You throw a bucket of water over the forge. The coals sizzle and the forge "
+"cools down completely."
+msgstr ""
+
+#: main.py:298
+msgid ""
+"You fire up the forge and it begins heating up. You should wait a while "
+"before checking on the sword."
+msgstr ""
+
+#: main.py:302
+msgid "You already have a sword. You don't need another one."
+msgstr ""
+
+#: main.py:307
+msgid "You requested another sword, but the forge is still hot!"
+msgstr ""
+
+#: main.py:308
+msgid ""
+"The blacksmith looks at you with disappointment. He says, 'Fine, but be more "
+"careful this time! If the forge gets too hot, the sword will melt.'"
+msgstr ""
+
+#: main.py:310 main.py:311
+msgid ""
+"The blacksmith refuses to forge you another sword. You have wasted too much "
+"of his time."
+msgstr ""
+
+#: main.py:314
+msgid ""
+"The blacksmith agrees to forge you a sword. It will take some time and the "
+"forge needs to be heated to the correct temperature however."
+msgstr ""
+
+#: main.py:331
+msgid "You should continue north you cheater."
+msgstr ""
+
+#: main.py:339
+msgid ""
+"You strike the wizard down with your holy sword. The town cheers for you. "
+"Your adventure has come to an end."
+msgstr ""
+
+#: main.py:344
+msgid ""
+"Your sword falters as you try to strike the wizard down. The wizard laughs "
+"as you fall to the ground."
+msgstr ""
+
+#: main.py:345
+msgid ""
+"The wizard laughs as you strike him down. The sword was cursed. You have "
+"failed. The adventure ends here."
+msgstr ""
+
+#: main.py:349
+msgid ""
+"Your sword is not powerful enough to defeat the wizard. Your sword shatters, "
+"you should probably get a new one."
+msgstr ""
+
+#: main.py:351
+msgid ""
+"You try to strike the wizard down but your sword is not powerful enough."
+msgstr ""
+
+#: main.py:356
+msgid "I have already blessed your sword child, go now and use it well."
+msgstr ""
+
+#: main.py:369
+msgid "The priest blesses your sword. You feel a warm glow."
+msgstr ""
+
+#: main.py:381
+msgid ""
+"The priest transfers the curse from the sword to himself. He falls to the "
+"ground."
+msgstr ""
+
+#: main.py:382
+msgid "The sword is now blessed. You feel a warm glow."
+msgstr ""
+
+#: main.py:383
+msgid ""
+"The priest looks at your sword with fear. My child, this sword is cursed. I "
+"will transfer the curse to me."
+msgstr ""
+
+#: main.py:385
+msgid "The priest looks at your empty hands. You feel a little embarrassed."
+msgstr ""
+
+#: main.py:396
+msgid "Sword forged"
+msgstr ""
+
+#: main.py:397
+msgid "The sword is ready. You take it from the blacksmith."
+msgstr ""
+
+#: main.py:401
+msgid "The sword has completely melted!"
+msgstr ""
+
+#: main.py:402
+msgid ""
+"The sword has completely melted! The blacksmith looks at you with "
+"disappointment."
+msgstr ""
+
+#: main.py:404
+msgid "To cold!"
+msgstr ""
+
+#: main.py:405
+msgid "The forge is not hot enough yet. The blacksmith tells you to wait."
+msgstr ""
+
+#: main.py:421
+msgid ""
+"The evil wizard has enchanted your sword with dark magic. You feel a chill "
+"run down your spine. This is a warning..."
+msgstr ""
+
+#: main.py:422
+msgid "You feel funny but powerful. Maybe I should accept a quest."
+msgstr ""
+
+#: main.py:427
+msgid "You killed the quest giver with your evil sword!"
+msgstr ""
+
+#: main.py:428
+msgid ""
+"The sword whispers; I killed them! you will never destroy the wizard with me "
+"in your hands! Hahahaha"
+msgstr ""
+
+#: main.py:430
+msgid "The quest giver turns pale. They collapse. Dead! What do I do now?"
+msgstr ""
+
+#: main.py:432
+msgid ""
+"The sword whispers; I will help you defeat the wizard. I am your only hope."
+msgstr ""
+
+#: main.py:434
+msgid ""
+"Wow! You have such a powerful sword. I will give you a quest to defeat the "
+"evil wizard."
+msgstr ""
+
+#: main.py:437
+msgid "He's not really impressed with your sword."
+msgstr ""
+
+#: main.py:438
+msgid ""
+"Ok, if you're sure... But it seems your sword may not be powerful enough to "
+"defeat the wizard."
+msgstr ""
+
+#: main.py:439
+msgid ""
+"The quest giver tentatively gives you a quest to defeat the evil wizard."
+msgstr ""
+
+#: main.py:441
+msgid ""
+"You don't have a sword. The quest giver looks at you with disappointment."
+msgstr ""
+
+#: main.py:452
+#, python-format
+msgid "Available actions: %s"
+msgstr ""
+
+#: main.py:457
+msgid "You have ended your adventure."
+msgstr ""
+
+#: main.py:468 main.py:476 main.py:483
+msgid "You can't do that right now."
+msgstr ""
+
+#: main.py:485
+msgid "I don't understand that command."
+msgstr ""
+
+#: main.py:494 main.py:495
+msgid "Welcome to your text adventure! Type 'quit' to exit."
+msgstr ""
+
+#: main.py:543
+msgid "Would you like to restart the adventure? (yes/no): "
+msgstr ""
+
+#: main.py:547
+msgid "Thank you for playing!"
+msgstr ""
+
+#: main.py:552
+msgid ""
+"Enter your name if you'd like to change it, or press Enter to keep the same "
+"name: "
+msgstr ""

@@ -1,0 +1,545 @@
+# French translations for adventure package.
+# This file is put in the public domain.
+# Automatically generated, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: adventure 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-18 22:56+0100\n"
+"PO-Revision-Date: 2026-02-18 22:41+0100\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: main.py:23
+msgid "accept his offer"
+msgstr "accepter son offre"
+
+#: main.py:24
+msgid "accept quest"
+msgstr "accepter la quête"
+
+#: main.py:25
+msgid "blacksmith"
+msgstr "forgeron"
+
+#: main.py:26
+msgid "chapel"
+msgstr "chapelle"
+
+#: main.py:27
+msgid "check sword"
+msgstr "vérifier l'épée"
+
+#: main.py:28
+msgid "cheat"
+msgstr "tricher"
+
+#: main.py:29
+msgid "cool forge"
+msgstr "refroidir la forge"
+
+#: main.py:30
+msgid "decline his offer"
+msgstr "refuser son offre"
+
+#: main.py:31
+msgid "exit the cave"
+msgstr "sortir de la grotte"
+
+#: main.py:32
+msgid "go back"
+msgstr "revenir"
+
+#: main.py:33
+msgid "go east"
+msgstr "aller à l'est"
+
+#: main.py:34
+msgid "go to forest"
+msgstr "aller en forêt"
+
+#: main.py:35
+msgid "go to town"
+msgstr "aller en ville"
+
+#: main.py:36
+msgid "go towards light"
+msgstr "aller vers la lumière"
+
+#: main.py:37
+msgid "heat forge"
+msgstr "chauffer la forge"
+
+#: main.py:38
+msgid "kill him"
+msgstr "le tuer"
+
+#: main.py:39
+msgid "look around"
+msgstr "regarder autour"
+
+#: main.py:40
+msgid "look at sword"
+msgstr "regarder l'épée"
+
+#: main.py:41
+msgid "mysterious man"
+msgstr "homme mystérieux"
+
+#: main.py:42
+msgid "pray"
+msgstr "prier"
+
+#: main.py:43
+msgid "quest giver"
+msgstr "donneur de quêtes"
+
+#: main.py:44
+msgid "rebuild blacksmith"
+msgstr "reconstruire le forgeron"
+
+#: main.py:45
+msgid "request sword"
+msgstr "demander une épée"
+
+#: main.py:46
+msgid "take the box"
+msgstr "prendre la boîte"
+
+#: main.py:47
+msgid "wizard"
+msgstr "sorcier"
+
+#: main.py:56
+msgid "Enter your name, brave adventurer: "
+msgstr "Entrez votre nom, brave aventurier : "
+
+#: main.py:117
+msgid ""
+"You are at the beginning of your adventure. There's a path leading north "
+"towards a town, and another path leading east towards a forest."
+msgstr ""
+"Vous êtes au début de votre aventure. Un chemin mène au nord vers une ville, "
+"et un autre à l'est vers une forêt."
+
+#: main.py:121
+msgid "You cheat and get a sword. You feel guilty"
+msgstr "Vous trichez et obtenez une épée. Vous vous sentez coupable."
+
+#: main.py:125
+msgid ""
+"You are in a dark forest. The trees are tall and the air is thick, you can "
+"make out a faint trail heading further east."
+msgstr ""
+"Vous êtes dans une sombre forêt. Les arbres sont hauts et l'air est épais, "
+"vous distinguez un sentier à peine visible qui s'enfonce plus à l'est."
+
+#: main.py:132
+msgid ""
+"You enter a dark cave at the end of the trail. The air is cold and damp. You "
+"see a faint light at the end of the cave."
+msgstr ""
+"Vous entrez dans une grotte sombre au bout du sentier. L'air est froid et "
+"humide. Vous voyez une faible lueur au fond de la grotte."
+
+#: main.py:139
+msgid ""
+"You find a treasure chest at the end of the cave. Inside is a small "
+"decorative wooden box with no visible way of opening it."
+msgstr ""
+"Vous trouvez un coffre au trésor au fond de la grotte. À l'intérieur se "
+"trouve une petite boîte en bois décorative sans ouverture visible."
+
+#: main.py:141
+msgid "You take the box and place it in your pocket."
+msgstr "Vous prenez la boîte et la mettez dans votre poche."
+
+#: main.py:142
+msgid ""
+"You retrace your steps and go back to where you first started your adventure"
+msgstr ""
+"Vous rebroussez chemin et revenez à l'endroit où vous avez commencé votre "
+"aventure."
+
+#: main.py:146
+msgid "You are at the blacksmith's forge. The blacksmith is busy working."
+msgstr "Vous êtes à la forge du forgeron. Le forgeron est occupé à travailler."
+
+#: main.py:149
+msgid "You ask the blacksmith to forge you a new sword."
+msgstr "Vous demandez au forgeron de vous forger une nouvelle épée."
+
+#: main.py:154
+msgid "You pour water on the forge. The coals sizzle."
+msgstr "Vous versez de l'eau sur la forge. Les braises crépitent."
+
+#: main.py:159
+msgid "You add more coal to the forge, increasing its heat."
+msgstr "Vous ajoutez du charbon à la forge, ce qui en augmente la chaleur."
+
+#: main.py:164
+msgid "You check if the sword is ready."
+msgstr "Vous vérifiez si l'épée est prête."
+
+#: main.py:173
+msgid ""
+"You are in a bustling town. People are going about their business. You see a "
+"blacksmith, a mysterious man wandering the streets, a quest giver, and a "
+"chapel."
+msgstr ""
+"Vous êtes dans une ville animée. Les gens vaquent à leurs occupations. Vous "
+"voyez un forgeron, un homme mystérieux qui erre dans les rues, un donneur de "
+"quêtes et une chapelle."
+
+#: main.py:176
+msgid "You help the town rebuild the blacksmith."
+msgstr "Vous aidez la ville à reconstruire la forge du forgeron."
+
+#: main.py:184
+msgid "You meet a mysterious man. He offers to enhance your sword with magic."
+msgstr ""
+"Vous rencontrez un homme mystérieux. Il vous propose d'enchanter votre épée "
+"avec de la magie."
+
+#: main.py:186
+msgid "A great choice indeed. Your sword is now enchanted with great power."
+msgstr ""
+"Un excellent choix en effet. Votre épée est maintenant enchantée d'un grand "
+"pouvoir."
+
+#: main.py:187
+msgid "You will not get another chance. ACCEPT MY OFFER!"
+msgstr "Vous n'aurez pas une autre chance. ACCEPTEZ MON OFFRE !"
+
+#: main.py:192
+msgid "You meet a wizard. He yells 'Are you here to kill me?!'"
+msgstr ""
+"Vous rencontrez un sorcier. Il crie : « Êtes-vous là pour me tuer ? ! »"
+
+#: main.py:194
+msgid "You attempt to kill the wizard."
+msgstr "Vous tentez de tuer le sorcier."
+
+#: main.py:199
+msgid ""
+"You meet a quest giver. He offers you a quest to defeat the evil wizard."
+msgstr ""
+"Vous rencontrez un donneur de quêtes. Il vous propose une quête pour vaincre "
+"le sorcier maléfique."
+
+#: main.py:201
+msgid "You tell the quest giver you would like to accept..."
+msgstr "Vous dites au donneur de quêtes que vous aimeriez accepter..."
+
+#: main.py:206
+msgid "You enter the chapel. The priest greets you warmly."
+msgstr ""
+"Vous entrez dans la chapelle. Le prêtre vous accueille chaleureusement."
+
+#: main.py:208
+msgid "The priest looks at your sword"
+msgstr "Le prêtre regarde votre épée"
+
+#: main.py:209
+msgid "You pray for guidance."
+msgstr "Vous priez pour obtenir des conseils."
+
+#: main.py:217
+msgid "You already have the box."
+msgstr "Vous avez déjà la boîte."
+
+#: main.py:220
+msgid "You hear a slight hum coming from the box as you touch it."
+msgstr ""
+"Vous entendez un léger bourdonnement provenant de la boîte lorsque vous la "
+"touchez."
+
+#: main.py:227
+msgid ""
+"As you enter the blacksmith you trip over a small stone slab. You feel "
+"lighter somehow."
+msgstr ""
+"En entrant chez le forgeron, vous trébuchez sur une petite dalle. Vous vous "
+"sentez plus léger."
+
+#: main.py:237
+msgid ""
+"While rebuilding the blacksmith, amongst the ashes you find the burnt "
+"remains of the decorative box. Laying beside it is a glowing, unburnt, piece "
+"of parchment which reads: 'Congratulations, Adventurer!'. Below it is a long "
+"cryptic looking message."
+msgstr ""
+"En reconstruisant la forge, parmi les cendres vous trouvez les restes "
+"calcinés de la boîte décorative. À côté gît un parchemin lumineux et intact "
+"sur lequel est écrit : « Félicitations, Aventurier ! ». En dessous se trouve "
+"un long message cryptique."
+
+#: main.py:242
+msgid "You help the town rebuild the blacksmith. The blacksmith is grateful."
+msgstr ""
+"Vous aidez la ville à reconstruire la forge. Le forgeron vous en est "
+"reconnaissant."
+
+#: main.py:294
+msgid ""
+"You throw a bucket of water over the forge. The coals sizzle and the forge "
+"cools down completely."
+msgstr ""
+"Vous jetez un seau d'eau sur la forge. Les braises crépitent et la forge se "
+"refroidit complètement."
+
+#: main.py:298
+msgid ""
+"You fire up the forge and it begins heating up. You should wait a while "
+"before checking on the sword."
+msgstr ""
+"Vous activez la forge et elle commence à chauffer. Vous devriez attendre un "
+"moment avant de vérifier l'épée."
+
+#: main.py:302
+msgid "You already have a sword. You don't need another one."
+msgstr "Vous avez déjà une épée. Vous n'en avez pas besoin d'une autre."
+
+#: main.py:307
+msgid "You requested another sword, but the forge is still hot!"
+msgstr "Vous avez demandé une autre épée, mais la forge est encore chaude !"
+
+#: main.py:308
+msgid ""
+"The blacksmith looks at you with disappointment. He says, 'Fine, but be more "
+"careful this time! If the forge gets too hot, the sword will melt.'"
+msgstr ""
+"Le forgeron vous regarde avec déception. Il dit : « D'accord, mais soyez "
+"plus prudent cette fois ! Si la forge devient trop chaude, l'épée fondra. »"
+
+#: main.py:310 main.py:311
+msgid ""
+"The blacksmith refuses to forge you another sword. You have wasted too much "
+"of his time."
+msgstr ""
+"Le forgeron refuse de vous forger une autre épée. Vous avez trop fait perdre "
+"son temps."
+
+#: main.py:314
+msgid ""
+"The blacksmith agrees to forge you a sword. It will take some time and the "
+"forge needs to be heated to the correct temperature however."
+msgstr ""
+"Le forgeron accepte de vous forger une épée. Cela prendra un certain temps "
+"et la forge doit être chauffée à la bonne température."
+
+#: main.py:331
+msgid "You should continue north you cheater."
+msgstr "Vous devriez continuer vers le nord, tricheur."
+
+#: main.py:339
+msgid ""
+"You strike the wizard down with your holy sword. The town cheers for you. "
+"Your adventure has come to an end."
+msgstr ""
+"Vous abattez le sorcier avec votre épée bénie. La ville vous acclame. Votre "
+"aventure touche à sa fin."
+
+#: main.py:344
+msgid ""
+"Your sword falters as you try to strike the wizard down. The wizard laughs "
+"as you fall to the ground."
+msgstr ""
+"Votre épée vacille alors que vous tentez d'abattre le sorcier. Le sorcier "
+"rit tandis que vous tombez au sol."
+
+#: main.py:345
+msgid ""
+"The wizard laughs as you strike him down. The sword was cursed. You have "
+"failed. The adventure ends here."
+msgstr ""
+"Le sorcier rit alors que vous l'abattez. L'épée était maudite. Vous avez "
+"échoué. L'aventure s'arrête ici."
+
+#: main.py:349
+msgid ""
+"Your sword is not powerful enough to defeat the wizard. Your sword shatters, "
+"you should probably get a new one."
+msgstr ""
+"Votre épée n'est pas assez puissante pour vaincre le sorcier. Votre épée se "
+"brise, vous devriez probablement en trouver une nouvelle."
+
+#: main.py:351
+msgid ""
+"You try to strike the wizard down but your sword is not powerful enough."
+msgstr ""
+"Vous tentez d'abattre le sorcier mais votre épée n'est pas assez puissante."
+
+#: main.py:356
+msgid "I have already blessed your sword child, go now and use it well."
+msgstr ""
+"J'ai déjà béni votre épée, mon enfant, partez maintenant et servez-vous-en "
+"bien."
+
+#: main.py:369
+msgid "The priest blesses your sword. You feel a warm glow."
+msgstr "Le prêtre bénit votre épée. Vous sentez une chaleur bienfaisante."
+
+#: main.py:381
+msgid ""
+"The priest transfers the curse from the sword to himself. He falls to the "
+"ground."
+msgstr ""
+"Le prêtre transfère la malédiction de l'épée sur lui-même. Il s'effondre au "
+"sol."
+
+#: main.py:382
+msgid "The sword is now blessed. You feel a warm glow."
+msgstr "L'épée est maintenant bénie. Vous sentez une chaleur bienfaisante."
+
+#: main.py:383
+msgid ""
+"The priest looks at your sword with fear. My child, this sword is cursed. I "
+"will transfer the curse to me."
+msgstr ""
+"Le prêtre regarde votre épée avec crainte. Mon enfant, cette épée est "
+"maudite. Je vais transférer la malédiction sur moi."
+
+#: main.py:385
+msgid "The priest looks at your empty hands. You feel a little embarrassed."
+msgstr "Le prêtre regarde vos mains vides. Vous vous sentez un peu gêné."
+
+#: main.py:396
+msgid "Sword forged"
+msgstr "Épée forgée"
+
+#: main.py:397
+msgid "The sword is ready. You take it from the blacksmith."
+msgstr "L'épée est prête. Vous la prenez au forgeron."
+
+#: main.py:401
+msgid "The sword has completely melted!"
+msgstr "L'épée a complètement fondu !"
+
+#: main.py:402
+msgid ""
+"The sword has completely melted! The blacksmith looks at you with "
+"disappointment."
+msgstr "L'épée a complètement fondu ! Le forgeron vous regarde avec déception."
+
+#: main.py:404
+msgid "To cold!"
+msgstr "Trop froid !"
+
+#: main.py:405
+msgid "The forge is not hot enough yet. The blacksmith tells you to wait."
+msgstr ""
+"La forge n'est pas encore assez chaude. Le forgeron vous dit d'attendre."
+
+#: main.py:421
+msgid ""
+"The evil wizard has enchanted your sword with dark magic. You feel a chill "
+"run down your spine. This is a warning..."
+msgstr ""
+"Le sorcier maléfique a enchanté votre épée avec de la magie noire. Un "
+"frisson vous parcourt l'échine. C'est un avertissement..."
+
+#: main.py:422
+msgid "You feel funny but powerful. Maybe I should accept a quest."
+msgstr ""
+"Vous vous sentez bizarre mais puissant. Peut-être devrais-je accepter une "
+"quête."
+
+#: main.py:427
+msgid "You killed the quest giver with your evil sword!"
+msgstr "Vous avez tué le donneur de quêtes avec votre épée maléfique !"
+
+#: main.py:428
+msgid ""
+"The sword whispers; I killed them! you will never destroy the wizard with me "
+"in your hands! Hahahaha"
+msgstr ""
+"L'épée murmure : Je les ai tués ! Tu ne détruiras jamais le sorcier avec moi "
+"entre tes mains ! Hahahaha"
+
+#: main.py:430
+msgid "The quest giver turns pale. They collapse. Dead! What do I do now?"
+msgstr ""
+"Le donneur de quêtes pâlit. Il s'effondre. Mort ! Que faire maintenant ?"
+
+#: main.py:432
+msgid ""
+"The sword whispers; I will help you defeat the wizard. I am your only hope."
+msgstr ""
+"L'épée murmure : Je t'aiderai à vaincre le sorcier. Je suis ton seul espoir."
+
+#: main.py:434
+msgid ""
+"Wow! You have such a powerful sword. I will give you a quest to defeat the "
+"evil wizard."
+msgstr ""
+"Wow ! Vous avez une épée si puissante. Je vais vous confier une quête pour "
+"vaincre le sorcier maléfique."
+
+#: main.py:437
+msgid "He's not really impressed with your sword."
+msgstr "Il n'est pas vraiment impressionné par votre épée."
+
+#: main.py:438
+msgid ""
+"Ok, if you're sure... But it seems your sword may not be powerful enough to "
+"defeat the wizard."
+msgstr ""
+"D'accord, si vous êtes sûr... Mais il semble que votre épée ne soit peut-"
+"être pas assez puissante pour vaincre le sorcier."
+
+#: main.py:439
+msgid ""
+"The quest giver tentatively gives you a quest to defeat the evil wizard."
+msgstr ""
+"Le donneur de quêtes vous confie avec hésitation une quête pour vaincre le "
+"sorcier maléfique."
+
+#: main.py:441
+msgid ""
+"You don't have a sword. The quest giver looks at you with disappointment."
+msgstr ""
+"Vous n'avez pas d'épée. Le donneur de quêtes vous regarde avec déception."
+
+#: main.py:452
+#, python-format
+msgid "Available actions: %s"
+msgstr "Actions disponibles : %s"
+
+#: main.py:457
+msgid "You have ended your adventure."
+msgstr "Vous avez mis fin à votre aventure."
+
+#: main.py:468 main.py:476 main.py:483
+msgid "You can't do that right now."
+msgstr "Vous ne pouvez pas faire cela pour l'instant."
+
+#: main.py:485
+msgid "I don't understand that command."
+msgstr "Je ne comprends pas cette commande."
+
+#: main.py:494 main.py:495
+msgid "Welcome to your text adventure! Type 'quit' to exit."
+msgstr "Bienvenue dans votre aventure textuelle ! Tapez 'quit' pour quitter."
+
+#: main.py:543
+msgid "Would you like to restart the adventure? (yes/no): "
+msgstr "Voulez-vous recommencer l'aventure ? (oui/non) : "
+
+#: main.py:547
+msgid "Thank you for playing!"
+msgstr "Merci d'avoir joué !"
+
+#: main.py:552
+msgid ""
+"Enter your name if you'd like to change it, or press Enter to keep the same "
+"name: "
+msgstr ""
+"Entrez votre nom si vous souhaitez le modifier, ou appuyez sur Entrée pour "
+"conserver le même : "

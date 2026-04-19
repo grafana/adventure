@@ -151,4 +151,22 @@ Now that you have all the pieces in place, you can play the game.
 1. Tip: There is one metric and log challenge in the game.
 1. Checkout the leaderboard once you are done.
 
+## Clean Up
+
+To tear down the Adventure Quest AWS stack:
+
+```bash
+sam delete --stack-name adventure-quest --region <your-region>
+```
+
+This removes the Lambda functions, API Gateway, DynamoDB table, and IAM roles created by the stack. It does not affect your IAM user, access keys, or the Secrets Manager secret.
+
+To also remove the Secrets Manager secret:
+
+```bash
+aws secretsmanager delete-secret \
+    --secret-id adventurequest/grafana/otlp \
+    --region <your-region>
+```
+
 
